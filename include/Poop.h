@@ -1,22 +1,64 @@
-#ifndef OOP_POOP_H
-#define OOP_POOP_H
+#ifndef POOP_H
+#define POOP_H
+
 #include <string>
 using namespace std;
 
-class Poop
-{
+class Poop {
 protected:
-    string color;
-    int tier;
+    int level;
     int value;
 
 public:
-    Poop(string color, int tier, int value);
-    int getPoopValue() const;
+    Poop(int lvl, int val);
+    virtual ~Poop() = default;
+
+    [[nodiscard]] virtual string getName() const = 0;
+
+    [[nodiscard]] int collect() const;
+    [[nodiscard]] static Poop* createByLevel(int level);
+
+    [[nodiscard]] int getLevel() const;
+    [[nodiscard]] int getValue() const;
 };
-class clasicPoop : Poop
-{
+
+
+class ClassicPoop : public Poop {
 public:
-    clasicPoop(const string& color, int tier, int value);
+    ClassicPoop();
+    [[nodiscard]] string getName() const override;
 };
-#endif //OOP_POOP_H
+
+using StandardPoop = ClassicPoop;
+
+class BronzePoop : public Poop {
+public:
+    BronzePoop();
+    [[nodiscard]] string getName() const override;
+};
+
+class SilverPoop : public Poop {
+public:
+    SilverPoop();
+    [[nodiscard]] string getName() const override;
+};
+
+class GoldenPoop : public Poop {
+public:
+    GoldenPoop();
+    [[nodiscard]] string getName() const override;
+};
+
+class PlatinumPoop : public Poop {
+public:
+    PlatinumPoop();
+    [[nodiscard]] string getName() const override;
+};
+
+class DiamondPoop : public Poop {
+public:
+    DiamondPoop();
+    [[nodiscard]] string getName() const override;
+};
+
+#endif
