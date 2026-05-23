@@ -1,19 +1,19 @@
-#include <iostream>
-#include <array>
-
 #include "BoardManager.h"
-
 
 int main() {
     BoardManager boardManager;
-    boardManager.spawnBabyPigeon(3);
-    boardManager.spawnMutantPigeon();
-    boardManager.spawnMutantPigeon();
+    boardManager.openCrate();
+    boardManager.openCrate();
+    boardManager.openCrate();boardManager.openCrate();boardManager.openCrate();boardManager.openCrate();boardManager.openCrate();
     boardManager.printBoard();
-    boardManager.performMerge(1,2);
+    boardManager.performMerge(0,1);
+    boardManager.performMerge(0,1);
+    boardManager.performMerge(0,1);
     boardManager.printBoard();
-    boardManager.performMerge(1,2);
+    boardManager.performMerge(2,1);
+
     boardManager.printBoard();
+    boardManager.showEncyclopedia();
 
     return 0;
 }

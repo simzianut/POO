@@ -33,6 +33,26 @@ Poop* Pigeon::dropPoop() const
 {
     return Poop::createByLevel(level);
 }
+Pigeon* Pigeon::createByLevel(int level)
+{
+    switch (level)
+    {
+        case 1:
+            return new BabyPigeon();
+        case 2:
+            return new NormalPigeon();
+        case 3:
+            return new ChunkyPigeon();
+        case 4:
+            return new FatPigeon();
+        case 5:
+            return new ObesePigeon();
+        case 6:
+            return new MutantPigeon();
+        default:
+            return nullptr;
+    }
+}
 int Pigeon::getTier() const { return tier; }
 int Pigeon::getPoopRate() const { return poopRate; }
 int Pigeon::getLevel() const { return level; }

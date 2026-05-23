@@ -1,4 +1,5 @@
 #include "BoardManager.h"
+#include "Crate.h"
 #include <iostream>
 
 BoardManager::BoardManager() = default;
@@ -11,14 +12,26 @@ BoardManager::~BoardManager() {
     activePigeons.clear();
 }
 
+void BoardManager::openCrate()
+{
+    Crate crate;
+    addPigeon(crate.open());
+}
+
+void BoardManager::addPigeon(Pigeon* pigeon) // testare
+{
+    if (pigeon != nullptr)
+        activePigeons.push_back(pigeon);
+}
+
 void BoardManager::spawnBabyPigeon(int count)
 {
     for (int i=1;i<=count;i++)
-        activePigeons.push_back(new BabyPigeon());
+        addPigeon(new BabyPigeon()); // testare
 }
 void BoardManager::spawnMutantPigeon()
 {
-    activePigeons.push_back(new MutantPigeon());
+    addPigeon(new MutantPigeon()); // test
 }
 void BoardManager::performMerge(int index1, int index2)
 {
@@ -56,6 +69,17 @@ int BoardManager::getTotalPigeonsAlive() const
     return activePigeons.size();
 }
 
+int BoardManager::getBiggestPigeonLevel() const
+{
+    int biggestLevel = 0;
+
+    for (const Pigeon* pigeon : activePigeons)
+        if (pigeon != nullptr && pigeon->getLevel() > biggestLevel)
+            biggestLevel = pigeon->getLevel();
+
+    return biggestLevel;
+}
+
 void BoardManager::printBoard() const
 {
     std::cout << "\n CURRENT NEST\n";
@@ -63,4 +87,41 @@ void BoardManager::printBoard() const
         std::cout << "[" << i << "] " << activePigeons[i]->getName() << "\n";
     }
     std::cout << "Pigeons on board: " << getTotalPigeonsAlive() << "\n\n";
+}
+
+void BoardManager::createPoop() const
+{
+
+}
+
+void BoardManager::showEncyclopedia() const
+{
+    for (int i = 1; i <= getBiggestPigeonLevel();i++)
+        encyclopedia.showPigeonInfo(i);
+}
+
+void BoardManager::showShop()
+{
+    shop.showCategories();
+    int category;
+    std::cin >> category;
+    if (category == 1)
+    {
+        shop.showPigeonCategory();
+        int pigeonLevel;
+        std::cin >> pigeonLevel;
+        buyNewPigeon(pigeonLevel);
+    }
+}
+
+void BoardManager::buyNewPigeon(int desiredPigeonLevel)
+{
+    if (shop.buyPigeon(*this, desiredPigeonLevel))
+    {
+        std::cout << "Pigeon purchased!\n";
+    }
+    else
+    {
+        std::cout << "Could not buy pigeon.\n";
+    }
 }

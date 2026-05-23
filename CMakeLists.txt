@@ -134,7 +134,15 @@ add_executable(${MAIN_EXECUTABLE_NAME} main.cpp ${SOURCES}
         include/Poop.h
         src/Poop.cpp
         include/BoardManager.h
-        src/BoardManager.cpp)
+        src/BoardManager.cpp
+        include/Crate.h # NEW: crate opening feature
+        src/Crate.cpp # NEW: crate opening feature
+        include/Shop.h # NEW: shop skeleton
+        src/Shop.cpp # NEW: shop skeleton
+        include/Berry.h # NEW: berry skeleton
+        src/Berry.cpp # NEW: berry skeleton
+        include/Encyclopedia.h # NEW: encyclopedia skeleton
+        src/Encyclopedia.cpp) # NEW: encyclopedia skeleton
 
 # NOTE: Add all defined targets (e.g. executables, libraries, etc. )
 # NOTE: RUN_SANITIZERS is optional, if it's not present it will default to true

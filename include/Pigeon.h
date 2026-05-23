@@ -27,6 +27,7 @@ public:
     [[nodiscard]] bool canMergeWith(const Pigeon& other) const;
     [[nodiscard]] Pigeon* merge(const Pigeon& other) const;
     [[nodiscard]] Poop* dropPoop() const;
+    [[nodiscard]] static Pigeon* createByLevel(int level);
 
     [[nodiscard]] int getTier() const;
     [[nodiscard]] int getPoopRate() const;
