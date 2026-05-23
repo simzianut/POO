@@ -1,7 +1,5 @@
 #include "Berry.h"
 
-#include <utility>
-
 Berry::Berry(string color) : color(std::move(color)) {}
 
 string Berry::getColor() const { return color; }

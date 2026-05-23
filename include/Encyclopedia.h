@@ -7,7 +7,7 @@ using namespace std;
 
 struct PigeonInfo {
     string name;
-    int poopRate;
+    float  poopPerSecond;
     string description;
 };
 
@@ -19,7 +19,10 @@ public:
     Encyclopedia();
 
     [[nodiscard]] vector<PigeonInfo> getPigeons() const;
-    void showPigeonInfo(int level) const;
+    void showPigeonInfo(const string& name) const;
+    void showAll() const;
+
+    void updateEncyclopedia(const string& name, float poopPerSecond, const string& description);
 };
 
 #endif

@@ -4,20 +4,22 @@
 #include "Pigeon.h"
 #include "BoardManager.h"
 
+using namespace std;
+
 void Shop::showCategories() const
 {
-    std::cout << "1. Pigeons\n";
-    std::cout << "2. Berries\n";
+    cout << "1. Pigeons\n";
+    cout << "2. Berries\n";
 }
 
 void Shop::showPigeonCategory() const
 {
-    std::cout << "Pigeon shop category\n";
+    cout << "Pigeon shop category\n";
 }
 
 void Shop::showBerryCategory() const
 {
-    std::cout << "Berry shop category\n";
+    cout << "Berry shop category\n";
 }
 
 

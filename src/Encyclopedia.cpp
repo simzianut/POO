@@ -1,40 +1,50 @@
 #include "Encyclopedia.h"
-
 #include <iostream>
 
-#include "BoardManager.h"
+using namespace std;
 
-Encyclopedia::Encyclopedia()
-{
-    pigeons.push_back({"Baby Pigeon", 1, "Cute baby"});
-    pigeons.push_back({"Normal Pigeon", 2, "Your normal street pigeon"});
-    pigeons.push_back({"Chunky Pigeon", 5, "Ate too many peanuts"});
-    pigeons.push_back({"Fat Pigeon", 10, "He just loves ice cream"});
-    pigeons.push_back({"Obese Pigeon", 30, ""});
-    pigeons.push_back({"Mutant Pigeon", 100, ""});
-}
+Encyclopedia::Encyclopedia() {}
 
 vector<PigeonInfo> Encyclopedia::getPigeons() const
 {
     return pigeons;
 }
 
-// void Encyclopedia::showPigeons(BoardManager x) const
-// {
-//     for (size_t i = 0; i < pigeons.size(); ++i)
-//         std::cout << "[" << i + 1 << "] " << pigeons[i].name << "\n";
-// }
-
-void Encyclopedia::showPigeonInfo(int level) const
+void Encyclopedia::updateEncyclopedia(const string& name, float poopPerSecond, const string& description)
 {
-    if (level < 1 || level > static_cast<int>(pigeons.size()))
+    for (const PigeonInfo& entry : pigeons)
+        if (entry.name == name)
+            return;
+    pigeons.push_back({name, poopPerSecond, description});
+}
+
+void Encyclopedia::showPigeonInfo(const string& name) const  //test
+{
+    for (const PigeonInfo& entry : pigeons)
     {
-        std::cout << "No encyclopedia entry for this pigeon.\n";
+        if (entry.name == name)
+        {
+            cout << "-->" << entry.name << "\n";
+            cout << "Coins/sec: " << entry.poopPerSecond << "\n";
+            cout << "Description: " << entry.description << "\n\n";
+            return;
+        }
+    }
+    cout << "No encyclopedia entry for " << name << "\n";
+}
+
+void Encyclopedia::showAll() const
+{
+    if (pigeons.empty())
+    {
+        cout << "The encyclopedia is empty. Discover pigeons by opening crates!\n";
         return;
     }
-
-    const PigeonInfo& pigeon = pigeons[level - 1];
-    std::cout << pigeon.name << "\n";
-    std::cout << "Poop rate: " << pigeon.poopRate << "\n";
-    std::cout << "Description: " << pigeon.description << "\n";
+    cout << "\n         ENCYCLOPEDIA\n";
+    for (const PigeonInfo& entry : pigeons)
+    {
+        std::cout << "-->" << entry.name << "\n";
+        std::cout << "Coins/sec: " << entry.poopPerSecond << "\n";
+        std::cout << "Description: " << entry.description << "\n\n";
+    }
 }

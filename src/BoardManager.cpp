@@ -2,13 +2,13 @@
 #include "Crate.h"
 #include <iostream>
 
-BoardManager::BoardManager() = default;
 
+BoardManager::BoardManager() : coins(0) {}
 
-BoardManager::~BoardManager() {
-    for (Pigeon* p : activePigeons) {
+BoardManager::~BoardManager()
+{
+    for (Pigeon* p : activePigeons)
         delete p;
-    }
     activePigeons.clear();
 }
 
@@ -18,27 +18,32 @@ void BoardManager::openCrate()
     addPigeon(crate.open());
 }
 
-void BoardManager::addPigeon(Pigeon* pigeon) // testare
+void BoardManager::addPigeon(Pigeon* pigeon)
 {
-    if (pigeon != nullptr)
-        activePigeons.push_back(pigeon);
+    if (pigeon == nullptr)
+        return;
+    activePigeons.push_back(pigeon);
+    update();// update ency
 }
 
 void BoardManager::spawnBabyPigeon(int count)
 {
-    for (int i=1;i<=count;i++)
-        addPigeon(new BabyPigeon()); // testare
+    for (int i = 1; i <= count; i++)
+        addPigeon(new BabyPigeon());
 }
+
 void BoardManager::spawnMutantPigeon()
 {
-    addPigeon(new MutantPigeon()); // test
+    addPigeon(new MutantPigeon());
 }
+
 void BoardManager::performMerge(int index1, int index2)
 {
     if (index1 == index2 || index1 < 0 || index2 < 0 ||
         index1 >= static_cast<int>(activePigeons.size()) ||
-        index2 >= static_cast<int>(activePigeons.size())) {
-        std::cout << "Invalid merge selection!\n";
+        index2 >= static_cast<int>(activePigeons.size()))
+    {
+        cout << "Invalid merge selection!\n";
         return;
     }
 
@@ -49,7 +54,7 @@ void BoardManager::performMerge(int index1, int index2)
 
     if (newPigeon != nullptr)
     {
-        std::cout << "Evolved into a " << newPigeon->getName() << "\n";
+        cout << "Evolved into a " << newPigeon->getName() << "!\n";
 
         delete p1;
         delete p2;
@@ -59,57 +64,84 @@ void BoardManager::performMerge(int index1, int index2)
         erase(activePigeons, nullptr);
 
         activePigeons.push_back(newPigeon);
+
+        update(); // enc
     }
     else
-        std::cout << "Merge failed. Those pigeons cannot be combined.\n";
+        cout << "Merge failed. Those pigeons cannot be combined.\n";
 }
+
+
 
 int BoardManager::getTotalPigeonsAlive() const
 {
-    return activePigeons.size();
+    return static_cast<int>(activePigeons.size());
 }
 
 int BoardManager::getBiggestPigeonLevel() const
 {
     int biggestLevel = 0;
-
     for (const Pigeon* pigeon : activePigeons)
         if (pigeon != nullptr && pigeon->getLevel() > biggestLevel)
             biggestLevel = pigeon->getLevel();
-
     return biggestLevel;
+}
+
+int BoardManager::getCoins() const
+{
+    return coins;
 }
 
 void BoardManager::printBoard() const
 {
-    std::cout << "\n CURRENT NEST\n";
-    for (size_t i = 0; i < activePigeons.size(); ++i) {
-        std::cout << "[" << i << "] " << activePigeons[i]->getName() << "\n";
+    cout << "         CURRENT NEST\n";
+    for (size_t i = 0; i < activePigeons.size(); ++i)
+    {
+        cout << "index [" << i << "] " << activePigeons[i]->getName() << "\n";
     }
-    std::cout << "Pigeons on board: " << getTotalPigeonsAlive() << "\n\n";
+    cout << "Pigeons on board: " << getTotalPigeonsAlive() << "\n";
+    cout << "Coins: " << coins << "\n\n";
 }
 
-void BoardManager::createPoop() const
-{
 
+void BoardManager::update()
+{
+    for (Pigeon* pigeon : activePigeons)
+    {
+        if (pigeon == nullptr)
+            continue;
+
+        encyclopedia.updateEncyclopedia(
+            pigeon->getName(),
+            pigeon->getPoopPerSecond(),
+            pigeon->getDescription()
+        );
+
+        Poop* poop = pigeon->dropPoopIfReady();
+        if (poop != nullptr)
+        {
+            int earned = poop->collect();
+            coins += earned;
+            delete poop;
+        }
+    }
 }
 
 void BoardManager::showEncyclopedia() const
 {
-    for (int i = 1; i <= getBiggestPigeonLevel();i++)
-        encyclopedia.showPigeonInfo(i);
+    encyclopedia.showAll();
 }
 
 void BoardManager::showShop()
 {
     shop.showCategories();
     int category;
-    std::cin >> category;
+    cin >> category;
     if (category == 1)
     {
         shop.showPigeonCategory();
         int pigeonLevel;
-        std::cin >> pigeonLevel;
+        cin >> pigeonLevel;
         buyNewPigeon(pigeonLevel);
     }
 }
@@ -117,11 +149,7 @@ void BoardManager::showShop()
 void BoardManager::buyNewPigeon(int desiredPigeonLevel)
 {
     if (shop.buyPigeon(*this, desiredPigeonLevel))
-    {
-        std::cout << "Pigeon purchased!\n";
-    }
+        cout << "Pigeon purchased!\n";
     else
-    {
-        std::cout << "Could not buy pigeon.\n";
-    }
+        cout << "Could not buy pigeon.\n";
 }
