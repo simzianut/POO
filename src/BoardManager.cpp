@@ -120,7 +120,7 @@ void BoardManager::update()
         Poop* poop = pigeon->dropPoopIfReady();
         if (poop != nullptr)
         {
-            int earned = poop->collect();
+            const int earned = poop->collect();
             coins += earned;
             delete poop;
         }
@@ -136,20 +136,59 @@ void BoardManager::showShop()
 {
     shop.showCategories();
     int category;
+    cout<<"Choose a category\n";
     cin >> category;
     if (category == 1)
     {
-        shop.showPigeonCategory();
+        shop.showPigeonCategory(*this);
+        if (shop.getAvailablePigeonOffers(*this).empty())
+            return;
+
         int pigeonLevel;
         cin >> pigeonLevel;
         buyNewPigeon(pigeonLevel);
+    }
+    else if (category == 2)
+    {
+        shop.showBerryCategory();
     }
 }
 
 void BoardManager::buyNewPigeon(int desiredPigeonLevel)
 {
-    if (shop.buyPigeon(*this, desiredPigeonLevel))
-        cout << "Pigeon purchased!\n";
-    else
-        cout << "Could not buy pigeon.\n";
+    if (!shop.canBuyPigeon(*this, desiredPigeonLevel))
+    {
+        cout << "That pigeon is not available in the shop.\n";
+        return;
+    }
+
+    const int price = shop.getPigeonPrice(desiredPigeonLevel);
+    if (coins < price)
+    {
+        cout << "Not enough coins. Price: " << price << " coins, your coins: " << coins << ".\n";
+        return;
+    }
+
+    Pigeon* pigeon = Pigeon::createByLevel(desiredPigeonLevel);
+    if (pigeon == nullptr)
+    {
+        cout << "Could not create that pigeon.\n";
+        return;
+    }
+
+    const string pigeonName = pigeon->getName();
+    coins -= price;
+
+    if (!shop.recordPigeonPurchase(desiredPigeonLevel))
+    {
+        coins += price;
+        delete pigeon;
+        cout << "Could not update the shop after purchase.\n";
+        return;
+    }
+
+    addPigeon(pigeon);
+
+    cout << "Purchased " << pigeonName << " for " << price << " coins.\n";
+    cout << "Next price: " << shop.getPigeonPrice(desiredPigeonLevel) << " coins.\n";
 }
