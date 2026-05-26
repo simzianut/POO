@@ -1,8 +1,10 @@
 #ifndef PIGEON_H
 #define PIGEON_H
 
+#include <chrono>
 #include <string>
-#include <ctime>
+#include <vector>
+#include "Berry.h"
 #include "Poop.h"
 
 using namespace std;
@@ -14,7 +16,9 @@ protected:
     float weak_poop_chance;
     float strong_poop_chance;
     float poopPerSecond;
-    time_t lastPoopTime;
+    std::chrono::steady_clock::time_point lastPoopTime;
+    BerryType activeBerryType;
+    std::chrono::steady_clock::time_point berryEffectExpiration;
 
     [[nodiscard]] virtual bool hasNextEvolution() const;
     [[nodiscard]] virtual Pigeon* createNextEvolution() const = 0;
@@ -33,7 +37,18 @@ public:
     [[nodiscard]] Pigeon* merge(const Pigeon& other) const;
     [[nodiscard]] Poop* dropPoop() const;
     [[nodiscard]] Poop* dropPoopIfReady();
+    [[nodiscard]] vector<Poop*> dropPoopsIfReady();
     [[nodiscard]] static Pigeon* createByLevel(int level);
+
+    void applyBerryEffect(BerryType type, int durationSeconds);
+    void clearBerryEffect();
+    void inheritBerryEffectFrom(const Pigeon& other);
+    [[nodiscard]] bool hasBerryEffect() const;
+    [[nodiscard]] bool hasActiveBerryEffect() const;
+    [[nodiscard]] bool hasActiveBerryEffect(BerryType type) const;
+    [[nodiscard]] bool isBerryEffectExpired() const;
+    [[nodiscard]] BerryType getActiveBerryType() const;
+    [[nodiscard]] int getRemainingBerrySeconds() const;
 
     [[nodiscard]] int getTier() const;
     [[nodiscard]] int getLevel() const;

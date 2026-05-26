@@ -1,18 +1,21 @@
 #include "Pigeon.h"
 #include "Poop.h"
+#include <chrono>
 #include <cstdlib>
-#include <ctime>
+#include <vector>
 using namespace std;
 
 
 Pigeon::Pigeon(int tier, int level, float weakChance, float strongChance, float pps):
     tier(tier), level(level),weak_poop_chance(weakChance), strong_poop_chance(strongChance),
-    poopPerSecond(pps), lastPoopTime(std::time(nullptr)) {}
+    poopPerSecond(pps), lastPoopTime(std::chrono::steady_clock::now()),
+    activeBerryType(BerryType::None), berryEffectExpiration() {}
 
 Pigeon::Pigeon(const Pigeon& other):
     tier(other.tier),level(other.level), weak_poop_chance(other.weak_poop_chance),
     strong_poop_chance(other.strong_poop_chance),poopPerSecond(other.poopPerSecond),
-    lastPoopTime(other.lastPoopTime) {}
+    lastPoopTime(other.lastPoopTime), activeBerryType(other.activeBerryType),
+    berryEffectExpiration(other.berryEffectExpiration) {}
 
 Pigeon& Pigeon::operator=(const Pigeon& other)
 {
@@ -24,6 +27,8 @@ Pigeon& Pigeon::operator=(const Pigeon& other)
         strong_poop_chance = other.strong_poop_chance;
         poopPerSecond = other.poopPerSecond;
         lastPoopTime = other.lastPoopTime;
+        activeBerryType = other.activeBerryType;
+        berryEffectExpiration = other.berryEffectExpiration;
     }
     return *this;
 }
@@ -44,7 +49,17 @@ Pigeon* Pigeon::merge(const Pigeon& other) const
 {
     if (!canMergeWith(other))
         return nullptr;
-    return createNextEvolution();
+
+    Pigeon* evolvedPigeon = createNextEvolution();
+    if (evolvedPigeon == nullptr)
+        return nullptr;
+
+    if (hasActiveBerryEffect())
+        evolvedPigeon->inheritBerryEffectFrom(*this);
+    else if (other.hasActiveBerryEffect())
+        evolvedPigeon->inheritBerryEffectFrom(other);
+
+    return evolvedPigeon;
 }
 
 
@@ -62,13 +77,56 @@ Poop* Pigeon::dropPoop() const
 
 Poop* Pigeon::dropPoopIfReady()
 {
-    std::time_t now = std::time(nullptr);
-    if (std::difftime(now, lastPoopTime) >= 2.0)
+    vector<Poop*> poops = dropPoopsIfReady();
+    if (poops.empty())
+        return nullptr;
+
+    Poop* firstPoop = poops.front();
+    for (size_t i = 1; i < poops.size(); i++)
+        delete poops[i];
+
+    return firstPoop;
+}
+
+vector<Poop*> Pigeon::dropPoopsIfReady()
+{
+    using Clock = std::chrono::steady_clock;
+
+    vector<Poop*> poops;
+    const Clock::time_point now = Clock::now();
+    const Clock::duration normalInterval = std::chrono::seconds(2);
+    const Clock::duration redInterval =
+        std::chrono::duration_cast<Clock::duration>(std::chrono::duration<double>(0.25));
+
+    auto addPoopsUntil = [this, &poops](Clock::time_point endTime, Clock::duration interval)
     {
-        lastPoopTime = now;
-        return dropPoop();
+        while (lastPoopTime + interval <= endTime)
+        {
+            lastPoopTime += interval;
+            Poop* poop = dropPoop();
+            if (poop != nullptr)
+                poops.push_back(poop);
+        }
+    };
+
+    if (activeBerryType == BerryType::Red)
+    {
+        Clock::time_point redEnd = now < berryEffectExpiration ? now : berryEffectExpiration;
+        addPoopsUntil(redEnd, redInterval);
+
+        if (now >= berryEffectExpiration)
+        {
+            if (lastPoopTime < berryEffectExpiration)
+                lastPoopTime = berryEffectExpiration;
+            addPoopsUntil(now, normalInterval);
+        }
     }
-    return nullptr;
+    else
+    {
+        addPoopsUntil(now, normalInterval);
+    }
+
+    return poops;
 }
 
 Pigeon* Pigeon::createByLevel(int level)
@@ -97,6 +155,72 @@ int Pigeon::getLevel() const { return level; }
 float Pigeon::getWeakPoopChance() const { return weak_poop_chance; }
 float Pigeon::getStrongPoopChance() const { return strong_poop_chance; }
 float Pigeon::getPoopPerSecond() const { return poopPerSecond; }
+
+void Pigeon::applyBerryEffect(BerryType type, int durationSeconds)
+{
+    const auto now = std::chrono::steady_clock::now();
+    activeBerryType = type;
+    berryEffectExpiration = now + std::chrono::seconds(durationSeconds);
+
+    if (type == BerryType::Red)
+        lastPoopTime = now;
+}
+
+void Pigeon::clearBerryEffect()
+{
+    activeBerryType = BerryType::None;
+    berryEffectExpiration = std::chrono::steady_clock::time_point();
+}
+
+void Pigeon::inheritBerryEffectFrom(const Pigeon& other)
+{
+    if (!other.hasActiveBerryEffect())
+        return;
+
+    activeBerryType = other.activeBerryType;
+    berryEffectExpiration = other.berryEffectExpiration;
+
+    if (activeBerryType == BerryType::Red)
+        lastPoopTime = std::chrono::steady_clock::now();
+}
+
+bool Pigeon::hasBerryEffect() const
+{
+    return activeBerryType != BerryType::None;
+}
+
+bool Pigeon::hasActiveBerryEffect() const
+{
+    return hasBerryEffect() && std::chrono::steady_clock::now() < berryEffectExpiration;
+}
+
+bool Pigeon::hasActiveBerryEffect(BerryType type) const
+{
+    return activeBerryType == type && hasActiveBerryEffect();
+}
+
+bool Pigeon::isBerryEffectExpired() const
+{
+    return hasBerryEffect() && std::chrono::steady_clock::now() >= berryEffectExpiration;
+}
+
+BerryType Pigeon::getActiveBerryType() const
+{
+    return activeBerryType;
+}
+
+int Pigeon::getRemainingBerrySeconds() const
+{
+    if (!hasBerryEffect())
+        return 0;
+
+    const auto now = std::chrono::steady_clock::now();
+    if (now >= berryEffectExpiration)
+        return 0;
+
+    return static_cast<int>(std::chrono::duration_cast<std::chrono::seconds>(
+        berryEffectExpiration - now).count());
+}
 
 
 BabyPigeon::BabyPigeon() : Pigeon(1, 1, 0.0f, 1.0f, 1.0f),

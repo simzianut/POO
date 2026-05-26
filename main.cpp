@@ -9,7 +9,7 @@ using namespace std;
 
 int main()
 {
-    srand(static_cast<unsigned>(std::time(nullptr)));
+    srand(static_cast<unsigned>(time(nullptr)));
 
     BoardManager board;
 
@@ -48,6 +48,9 @@ int main()
             break;
         case 5:
             board.printBoard();
+            break;
+        case 6:
+            board.showFeedBerryMenu();
             break;
         default:
             cout << "Goodbye!\n";
