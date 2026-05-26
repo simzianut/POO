@@ -32,7 +32,7 @@ private:
 public:
     Shop();
 
-    void showCategories() const;
+    static void showCategories() ;
     void showPigeonCategory(const BoardManager& board) const;
     void showBerryCategory() const;
 

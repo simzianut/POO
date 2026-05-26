@@ -5,7 +5,7 @@
 
 class Crate {
 public:
-    [[nodiscard]] Pigeon* open() const;
+    static Pigeon* open();
 };
 
 #endif

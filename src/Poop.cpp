@@ -1,10 +1,10 @@
 #include "Poop.h"
 
-Poop::Poop(int lvl, int val) : level(lvl), value(val) {}
+Poop::Poop(const int lvl, const int val) : level(lvl), value(val) {}
 
 int Poop::collect() const { return value; }
 
-Poop* Poop::createByLevel(int level) {
+Poop* Poop::createByLevel(const int level) {
     switch (level) {
         case 1:
             return new ClassicPoop();

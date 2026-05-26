@@ -1,11 +1,12 @@
 #include "Berry.h"
+using namespace std;
 
-Berry::Berry(string color, BerryType type) : color(std::move(color)), type(type) {}
+Berry::Berry(string color, const BerryType type) : color(std::move(color)), type(type) {}
 
 string Berry::getColor() const { return color; }
 BerryType Berry::getType() const { return type; }
 
-bool Berry::isValidType(BerryType type)
+bool Berry::isValidType(const BerryType type)
 {
     return type == BerryType::Red ||
            type == BerryType::Yellow ||
@@ -21,7 +22,7 @@ BerryType Berry::typeFromInt(int value)
     return type;
 }
 
-string Berry::getNameByType(BerryType type)
+string Berry::getNameByType(const BerryType type)
 {
     switch (type)
     {
@@ -36,7 +37,7 @@ string Berry::getNameByType(BerryType type)
     }
 }
 
-string Berry::getColorByType(BerryType type)
+string Berry::getColorByType(const BerryType type)
 {
     switch (type)
     {

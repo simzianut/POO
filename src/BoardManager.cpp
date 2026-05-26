@@ -10,19 +10,19 @@ BoardManager::BoardManager() :
 
 BoardManager::~BoardManager()
 {
-    for (Pigeon* p : activePigeons)
+    for (const Pigeon* p : activePigeons)
         delete p;
     activePigeons.clear();
 }
 
-bool BoardManager::isValidPigeonIndex(int index) const
+bool BoardManager::isValidPigeonIndex(const int index) const
 {
     return index >= 0 && index < static_cast<int>(activePigeons.size());
 }
 
 int BoardManager::getBerryInventoryCount(BerryType berryType) const
 {
-    int index = static_cast<int>(berryType);
+    const int index = static_cast<int>(berryType);
     if (index <= 0 || index >= static_cast<int>(berryInventory.size()))
         return 0;
 
@@ -31,7 +31,7 @@ int BoardManager::getBerryInventoryCount(BerryType berryType) const
 
 void BoardManager::openCrate()
 {
-    Crate crate;
+    const Crate crate;
     addPigeon(crate.open());
 }
 
@@ -43,7 +43,7 @@ void BoardManager::addPigeon(Pigeon* pigeon)
     update();// update ency
 }
 
-void BoardManager::spawnBabyPigeon(int count)
+void BoardManager::spawnBabyPigeon(const int count)
 {
     for (int i = 1; i <= count; i++)
         addPigeon(new BabyPigeon());
@@ -54,7 +54,7 @@ void BoardManager::spawnMutantPigeon()
     addPigeon(new MutantPigeon());
 }
 
-void BoardManager::performMerge(int index1, int index2)
+void BoardManager::performMerge(const int index1, const int index2)
 {
     if (index1 == index2 || !isValidPigeonIndex(index1) || !isValidPigeonIndex(index2))
     {
@@ -71,7 +71,7 @@ void BoardManager::performMerge(int index1, int index2)
         return;
     }
 
-    Pigeon* berryPigeon = nullptr;
+    const Pigeon* berryPigeon = nullptr;
     if (p1->hasActiveBerryEffect())
         berryPigeon = p1;
     else if (p2->hasActiveBerryEffect())
@@ -105,7 +105,7 @@ void BoardManager::performMerge(int index1, int index2)
         cout << "Merge failed. Those pigeons cannot be combined.\n";
 }
 
-void BoardManager::performMerge(int index)
+void BoardManager::performMerge(const int index)
 {
     if (!isValidPigeonIndex(index))
     {
@@ -225,11 +225,11 @@ void BoardManager::update()
         }
 
         vector<Poop*> poops = pigeon->dropPoopsIfReady();
-        for (Poop* poop : poops)
+        for (const Poop* poop : poops)
         {
             if (poop == nullptr)
                 continue;
-            int earned = poop->collect();
+            const int earned = poop->collect();
             coins += earned;
             delete poop;
         }
@@ -283,7 +283,7 @@ void BoardManager::showFeedBerryMenu()
     feedBerry(berryType, pigeonIndex);
 }
 
-void BoardManager::buyNewPigeon(int desiredPigeonLevel)
+void BoardManager::buyNewPigeon(const int desiredPigeonLevel)
 {
     if (!shop.canBuyPigeon(*this, desiredPigeonLevel))
     {
@@ -291,7 +291,7 @@ void BoardManager::buyNewPigeon(int desiredPigeonLevel)
         return;
     }
 
-    int price = shop.getPigeonPrice(desiredPigeonLevel);
+    const int price = shop.getPigeonPrice(desiredPigeonLevel);
     if (coins < price)
     {
         cout << "Not enough coins. Price: " << price
@@ -306,7 +306,7 @@ void BoardManager::buyNewPigeon(int desiredPigeonLevel)
         return;
     }
 
-    string pigeonName = pigeon->getName();
+    const string pigeonName = pigeon->getName();
     coins -= price;
 
     if (!shop.recordPigeonPurchase(desiredPigeonLevel))
@@ -332,7 +332,7 @@ void BoardManager::buyNewBerry(int desiredBerryType)
         return;
     }
 
-    int price = shop.getBerryPrice(berryType);
+    const int price = shop.getBerryPrice(berryType);
     if (coins < price)
     {
         cout << "Not enough coins. Price: " << price

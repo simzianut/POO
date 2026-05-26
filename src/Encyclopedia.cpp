@@ -3,14 +3,14 @@
 
 using namespace std;
 
-Encyclopedia::Encyclopedia() {}
+Encyclopedia::Encyclopedia() = default;
 
 vector<PigeonInfo> Encyclopedia::getPigeons() const
 {
     return pigeons;
 }
 
-void Encyclopedia::updateEncyclopedia(const string& name, float poopPerSecond, const string& description)
+void Encyclopedia::updateEncyclopedia(const string& name, const float poopPerSecond, const string& description)
 {
     for (const PigeonInfo& entry : pigeons)
         if (entry.name == name)

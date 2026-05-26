@@ -20,8 +20,7 @@ Shop::Shop() :
         {BerryType::Yellow, Berry::getNameByType(BerryType::Yellow), 100},
         {BerryType::Purple, Berry::getNameByType(BerryType::Purple), 100}
     }) {}
-
-const PigeonOffer* Shop::findPigeonOffer(int pigeonLevel) const
+const PigeonOffer* Shop::findPigeonOffer(const int pigeonLevel) const
 {
     for (const PigeonOffer& offer : pigeonOffers)
         if (offer.level == pigeonLevel)
@@ -29,7 +28,7 @@ const PigeonOffer* Shop::findPigeonOffer(int pigeonLevel) const
     return nullptr;
 }
 
-PigeonOffer* Shop::findPigeonOffer(int pigeonLevel)
+PigeonOffer* Shop::findPigeonOffer(const int pigeonLevel)
 {
     for (PigeonOffer& offer : pigeonOffers)
         if (offer.level == pigeonLevel)
@@ -37,7 +36,7 @@ PigeonOffer* Shop::findPigeonOffer(int pigeonLevel)
     return nullptr;
 }
 
-const BerryOffer* Shop::findBerryOffer(BerryType berryType) const
+const BerryOffer* Shop::findBerryOffer(const BerryType berryType) const
 {
     for (const BerryOffer& offer : berryOffers)
         if (offer.type == berryType)
@@ -45,7 +44,7 @@ const BerryOffer* Shop::findBerryOffer(BerryType berryType) const
     return nullptr;
 }
 
-void Shop::showCategories() const
+void Shop::showCategories()
 {
     cout << "\n         SHOP\n";
     cout << "1. Pigeons\n";
@@ -54,7 +53,7 @@ void Shop::showCategories() const
 
 void Shop::showPigeonCategory(const BoardManager& board) const
 {
-    vector<PigeonOffer> availableOffers = getAvailablePigeonOffers(board);
+    const vector<PigeonOffer> availableOffers = getAvailablePigeonOffers(board);
 
     if (availableOffers.empty())
     {
@@ -94,7 +93,7 @@ vector<PigeonOffer> Shop::getAvailablePigeonOffers(const BoardManager& board) co
     return availableOffers;
 }
 
-bool Shop::canBuyPigeon(const BoardManager& board, int pigeonLevel) const
+bool Shop::canBuyPigeon(const BoardManager& board, const int pigeonLevel) const
 {
     if (findPigeonOffer(pigeonLevel) == nullptr)
         return false;
@@ -102,7 +101,7 @@ bool Shop::canBuyPigeon(const BoardManager& board, int pigeonLevel) const
     return board.getBiggestPigeonLevel() - pigeonLevel >= 3;
 }
 
-int Shop::getPigeonPrice(int pigeonLevel) const
+int Shop::getPigeonPrice(const int pigeonLevel) const
 {
     const PigeonOffer* offer = findPigeonOffer(pigeonLevel);
     if (offer == nullptr)
@@ -111,7 +110,7 @@ int Shop::getPigeonPrice(int pigeonLevel) const
     return offer->currentPrice;
 }
 
-int Shop::getPigeonTimesBought(int pigeonLevel) const
+int Shop::getPigeonTimesBought(const int pigeonLevel) const
 {
     const PigeonOffer* offer = findPigeonOffer(pigeonLevel);
     if (offer == nullptr)
@@ -120,7 +119,7 @@ int Shop::getPigeonTimesBought(int pigeonLevel) const
     return offer->timesBought;
 }
 
-bool Shop::recordPigeonPurchase(int pigeonLevel)
+bool Shop::recordPigeonPurchase(const int pigeonLevel)
 {
     PigeonOffer* offer = findPigeonOffer(pigeonLevel);
     if (offer == nullptr)
@@ -136,12 +135,12 @@ vector<BerryOffer> Shop::getBerryOffers() const
     return berryOffers;
 }
 
-bool Shop::canBuyBerry(BerryType berryType) const
+bool Shop::canBuyBerry(const BerryType berryType) const
 {
     return findBerryOffer(berryType) != nullptr;
 }
 
-int Shop::getBerryPrice(BerryType berryType) const
+int Shop::getBerryPrice(const BerryType berryType) const
 {
     const BerryOffer* offer = findBerryOffer(berryType);
     if (offer == nullptr)

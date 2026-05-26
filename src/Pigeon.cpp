@@ -9,7 +9,7 @@ using namespace std;
 Pigeon::Pigeon(int tier, int level, float weakChance, float strongChance, float pps):
     tier(tier), level(level),weak_poop_chance(weakChance), strong_poop_chance(strongChance),
     poopPerSecond(pps), lastPoopTime(std::chrono::steady_clock::now()),
-    activeBerryType(BerryType::None), berryEffectExpiration() {}
+    activeBerryType(BerryType::None) {}
 
 Pigeon::Pigeon(const Pigeon& other):
     tier(other.tier),level(other.level), weak_poop_chance(other.weak_poop_chance),
@@ -129,7 +129,7 @@ vector<Poop*> Pigeon::dropPoopsIfReady()
     return poops;
 }
 
-Pigeon* Pigeon::createByLevel(int level)
+Pigeon* Pigeon::createByLevel(const int level)
 {
     switch (level)
     {
@@ -156,7 +156,7 @@ float Pigeon::getWeakPoopChance() const { return weak_poop_chance; }
 float Pigeon::getStrongPoopChance() const { return strong_poop_chance; }
 float Pigeon::getPoopPerSecond() const { return poopPerSecond; }
 
-void Pigeon::applyBerryEffect(BerryType type, int durationSeconds)
+void Pigeon::applyBerryEffect(const BerryType type,const int durationSeconds)
 {
     const auto now = std::chrono::steady_clock::now();
     activeBerryType = type;
@@ -194,7 +194,7 @@ bool Pigeon::hasActiveBerryEffect() const
     return hasBerryEffect() && std::chrono::steady_clock::now() < berryEffectExpiration;
 }
 
-bool Pigeon::hasActiveBerryEffect(BerryType type) const
+bool Pigeon::hasActiveBerryEffect(const BerryType type) const
 {
     return activeBerryType == type && hasActiveBerryEffect();
 }
@@ -237,28 +237,28 @@ string NormalPigeon::getDescription() const { return description; }
 Pigeon* NormalPigeon::createNextEvolution() const { return new ChunkyPigeon(); }
 
 
-ChunkyPigeon::ChunkyPigeon() : Pigeon(3, 3, 0.60f, 0.40f, 4.6f),
+ChunkyPigeon::ChunkyPigeon() : Pigeon(3, 2, 0.60f, 0.40f, 4.6f),
     description("Ate too many peanuts") {}
 string ChunkyPigeon::getName() const { return "Chunky Pigeon"; }
 string ChunkyPigeon::getDescription() const { return description; }
 Pigeon* ChunkyPigeon::createNextEvolution() const { return new FatPigeon(); }
 
 
-FatPigeon::FatPigeon() : Pigeon(4, 4, 0.05f, 0.95f, 9.5f),
+FatPigeon::FatPigeon() : Pigeon(4, 2, 0.05f, 0.95f, 9.5f),
     description("He just loves ice cream") {}
 string FatPigeon::getName() const { return "Fat Pigeon"; }
 string FatPigeon::getDescription() const { return description; }
 Pigeon* FatPigeon::createNextEvolution() const { return new ObesePigeon(); }
 
 
-ObesePigeon::ObesePigeon() : Pigeon(5, 5, 0.90f, 0.10f, 19.0f),
+ObesePigeon::ObesePigeon() : Pigeon(5, 3, 0.90f, 0.10f, 19.0f),
     description("Can barely walk, might need a doctor") {}
 string ObesePigeon::getName() const { return "Obese Pigeon"; }
 string ObesePigeon::getDescription() const { return description; }
 Pigeon* ObesePigeon::createNextEvolution() const { return new MutantPigeon(); }
 
 
-MutantPigeon::MutantPigeon() : Pigeon(6, 6, 0.65f, 0.35f, 41.5f),
+MutantPigeon::MutantPigeon() : Pigeon(6, 3, 0.65f, 0.35f, 41.5f),
     description("Something went very wrong at the lab") {}
 string MutantPigeon::getName() const { return "Mutant Pigeon"; }
 string MutantPigeon::getDescription() const { return description; }

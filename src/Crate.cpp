@@ -1,6 +1,6 @@
 #include "Crate.h"
 
-Pigeon* Crate::open() const
+Pigeon* Crate::open()
 {
     return new BabyPigeon();
 }
