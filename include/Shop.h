@@ -8,7 +8,7 @@
 class BoardManager;
 
 struct PigeonOffer {
-    int level;
+    int tier;
     std::string name;
     int currentPrice;
     int timesBought;
@@ -25,8 +25,8 @@ private:
     std::vector<PigeonOffer> pigeonOffers;
     std::vector<BerryOffer> berryOffers;
 
-    [[nodiscard]] const PigeonOffer* findPigeonOffer(int pigeonLevel) const;
-    [[nodiscard]] PigeonOffer* findPigeonOffer(int pigeonLevel);
+    [[nodiscard]] const PigeonOffer* findPigeonOffer(int pigeonTier) const;
+    [[nodiscard]] PigeonOffer* findPigeonOffer(int pigeonTier);
     [[nodiscard]] const BerryOffer* findBerryOffer(BerryType berryType) const;
 
 public:
@@ -37,10 +37,10 @@ public:
     void showBerryCategory() const;
 
     [[nodiscard]] std::vector<PigeonOffer> getAvailablePigeonOffers(const BoardManager& board) const;
-    [[nodiscard]] bool canBuyPigeon(const BoardManager& board, int pigeonLevel) const;
-    [[nodiscard]] int getPigeonPrice(int pigeonLevel) const;
-    [[nodiscard]] int getPigeonTimesBought(int pigeonLevel) const;
-    bool recordPigeonPurchase(int pigeonLevel);
+    [[nodiscard]] bool canBuyPigeon(const BoardManager& board, int pigeonTier) const;
+    [[nodiscard]] int getPigeonPrice(int pigeonTier) const;
+    [[nodiscard]] int getPigeonTimesBought(int pigeonTier) const;
+    bool recordPigeonPurchase(int pigeonTier);
 
     [[nodiscard]] std::vector<BerryOffer> getBerryOffers() const;
     [[nodiscard]] bool canBuyBerry(BerryType berryType) const;

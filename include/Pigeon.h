@@ -20,6 +20,11 @@ protected:
     BerryType activeBerryType;
     std::chrono::steady_clock::time_point berryEffectExpiration;
 
+    void addPoopsUntil(
+        vector<Poop*>& poops,
+        std::chrono::steady_clock::time_point endTime,
+        std::chrono::steady_clock::duration interval
+    );
     [[nodiscard]] virtual bool hasNextEvolution() const;
     [[nodiscard]] virtual Pigeon* createNextEvolution() const = 0;
 
@@ -38,6 +43,7 @@ public:
     [[nodiscard]] Poop* dropPoop() const;
     [[nodiscard]] Poop* dropPoopIfReady();
     [[nodiscard]] vector<Poop*> dropPoopsIfReady();
+    [[nodiscard]] static Pigeon* createByTier(int tier);
     [[nodiscard]] static Pigeon* createByLevel(int level);
 
     void applyBerryEffect(BerryType type, int durationSeconds);
@@ -116,6 +122,96 @@ class MutantPigeon : public Pigeon {
     string description;
 public:
     MutantPigeon();
+    [[nodiscard]] string getName() const override;
+    [[nodiscard]] string getDescription() const override;
+    [[nodiscard]] Pigeon* createNextEvolution() const override;
+};
+
+class PigeonWorm : public Pigeon {
+    string description;
+public:
+    PigeonWorm();
+    [[nodiscard]] string getName() const override;
+    [[nodiscard]] string getDescription() const override;
+    [[nodiscard]] Pigeon* createNextEvolution() const override;
+};
+
+class Spingeon : public Pigeon {
+    string description;
+public:
+    Spingeon();
+    [[nodiscard]] string getName() const override;
+    [[nodiscard]] string getDescription() const override;
+    [[nodiscard]] Pigeon* createNextEvolution() const override;
+};
+
+class Cheerlegeon : public Pigeon {
+    string description;
+public:
+    Cheerlegeon();
+    [[nodiscard]] string getName() const override;
+    [[nodiscard]] string getDescription() const override;
+    [[nodiscard]] Pigeon* createNextEvolution() const override;
+};
+
+class Chickenigeon : public Pigeon {
+    string description;
+public:
+    Chickenigeon();
+    [[nodiscard]] string getName() const override;
+    [[nodiscard]] string getDescription() const override;
+    [[nodiscard]] Pigeon* createNextEvolution() const override;
+};
+
+class Twingeon : public Pigeon {
+    string description;
+public:
+    Twingeon();
+    [[nodiscard]] string getName() const override;
+    [[nodiscard]] string getDescription() const override;
+    [[nodiscard]] Pigeon* createNextEvolution() const override;
+};
+
+class Pidgeknowledge : public Pigeon {
+    string description;
+public:
+    Pidgeknowledge();
+    [[nodiscard]] string getName() const override;
+    [[nodiscard]] string getDescription() const override;
+    [[nodiscard]] Pigeon* createNextEvolution() const override;
+};
+
+class Pidgeeyes : public Pigeon {
+    string description;
+public:
+    Pidgeeyes();
+    [[nodiscard]] string getName() const override;
+    [[nodiscard]] string getDescription() const override;
+    [[nodiscard]] Pigeon* createNextEvolution() const override;
+};
+
+class Capturegeon : public Pigeon {
+    string description;
+public:
+    Capturegeon();
+    [[nodiscard]] string getName() const override;
+    [[nodiscard]] string getDescription() const override;
+    [[nodiscard]] Pigeon* createNextEvolution() const override;
+};
+
+class Bellybird : public Pigeon {
+    string description;
+public:
+    Bellybird();
+    [[nodiscard]] string getName() const override;
+    [[nodiscard]] string getDescription() const override;
+    [[nodiscard]] Pigeon* createNextEvolution() const override;
+};
+
+class Pigeostrich : public Pigeon {
+    string description;
+public:
+    Pigeostrich();
     [[nodiscard]] string getName() const override;
     [[nodiscard]] string getDescription() const override;
     [[nodiscard]] bool hasNextEvolution() const override;

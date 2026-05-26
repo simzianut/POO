@@ -158,6 +158,15 @@ int BoardManager::getBiggestPigeonLevel() const
     return biggestLevel;
 }
 
+int BoardManager::getBiggestPigeonTier() const
+{
+    int biggestTier = 0;
+    for (const Pigeon* pigeon : activePigeons)
+        if (pigeon != nullptr && pigeon->getTier() > biggestTier)
+            biggestTier = pigeon->getTier();
+    return biggestTier;
+}
+
 int BoardManager::getCoins() const
 {
     return coins;
@@ -259,9 +268,9 @@ void BoardManager::showShop()
         if (shop.getAvailablePigeonOffers(*this).empty())
             return;
 
-        int pigeonLevel;
-        cin >> pigeonLevel;
-        buyNewPigeon(pigeonLevel);
+        int pigeonTier;
+        cin >> pigeonTier;
+        buyNewPigeon(pigeonTier);
     }
     else if (category == 2)
     {
@@ -283,15 +292,15 @@ void BoardManager::showFeedBerryMenu()
     feedBerry(berryType, pigeonIndex);
 }
 
-void BoardManager::buyNewPigeon(const int desiredPigeonLevel)
+void BoardManager::buyNewPigeon(const int desiredPigeonTier)
 {
-    if (!shop.canBuyPigeon(*this, desiredPigeonLevel))
+    if (!shop.canBuyPigeon(*this, desiredPigeonTier))
     {
         cout << "That pigeon is not available in the shop.\n";
         return;
     }
 
-    const int price = shop.getPigeonPrice(desiredPigeonLevel);
+    const int price = shop.getPigeonPrice(desiredPigeonTier);
     if (coins < price)
     {
         cout << "Not enough coins. Price: " << price
@@ -299,7 +308,7 @@ void BoardManager::buyNewPigeon(const int desiredPigeonLevel)
         return;
     }
 
-    Pigeon* pigeon = Pigeon::createByLevel(desiredPigeonLevel);
+    Pigeon* pigeon = Pigeon::createByTier(desiredPigeonTier);
     if (pigeon == nullptr)
     {
         cout << "Could not create that pigeon.\n";
@@ -309,7 +318,7 @@ void BoardManager::buyNewPigeon(const int desiredPigeonLevel)
     const string pigeonName = pigeon->getName();
     coins -= price;
 
-    if (!shop.recordPigeonPurchase(desiredPigeonLevel))
+    if (!shop.recordPigeonPurchase(desiredPigeonTier))
     {
         coins += price;
         delete pigeon;
@@ -320,7 +329,7 @@ void BoardManager::buyNewPigeon(const int desiredPigeonLevel)
     addPigeon(pigeon);
 
     cout << "Purchased " << pigeonName << " for " << price << " coins.\n";
-    cout << "Next price: " << shop.getPigeonPrice(desiredPigeonLevel) << " coins.\n";
+    cout << "Next price: " << shop.getPigeonPrice(desiredPigeonTier) << " coins.\n";
 }
 
 void BoardManager::buyNewBerry(int desiredBerryType)

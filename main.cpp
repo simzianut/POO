@@ -19,6 +19,7 @@ int main()
     cout << "3 - Show encyclopedia\n";
     cout << "4 - Open shop\n";
     cout << "5 - Print board & coins\n";
+    cout << "6 - Feed berry\n";
     cout << "Press anything - Quit\n\n";
 
     while (1)

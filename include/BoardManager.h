@@ -32,6 +32,7 @@ public:
     void performMerge(int index);
     [[nodiscard]] int getTotalPigeonsAlive() const;
     [[nodiscard]] int getBiggestPigeonLevel() const;
+    [[nodiscard]] int getBiggestPigeonTier() const;
     [[nodiscard]] int getCoins() const;
     [[nodiscard]] bool hasAnyActiveBerryEffect() const;
     void printBoard() const;
@@ -42,7 +43,7 @@ public:
     void showEncyclopedia() const;
     void showShop();
     void showFeedBerryMenu();
-    void buyNewPigeon(int desiredPigeonLevel);
+    void buyNewPigeon(int desiredPigeonTier);
     void buyNewBerry(int desiredBerryType);
     void feedBerry(int desiredBerryType, int pigeonIndex);
 };
