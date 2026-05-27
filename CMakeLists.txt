@@ -142,7 +142,8 @@ add_executable(${MAIN_EXECUTABLE_NAME} main.cpp ${SOURCES}
         include/Berry.h # NEW: berry skeleton
         src/Berry.cpp # NEW: berry skeleton
         include/Encyclopedia.h # NEW: encyclopedia skeleton
-        src/Encyclopedia.cpp) # NEW: encyclopedia skeleton
+        src/Encyclopedia.cpp
+        src/GameException.cpp) # NEW: encyclopedia skeleton
 
 # NOTE: Add all defined targets (e.g. executables, libraries, etc. )
 # NOTE: RUN_SANITIZERS is optional, if it's not present it will default to true

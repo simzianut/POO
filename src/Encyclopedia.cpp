@@ -1,7 +1,30 @@
 #include "Encyclopedia.h"
 #include <iostream>
+#include <utility>
 
 using namespace std;
+
+PigeonInfo::PigeonInfo() : poopPerSecond(0.0f) {}
+
+PigeonInfo::PigeonInfo(string name, const float poopPerSecond, string description) :
+    name(std::move(name)),
+    poopPerSecond(poopPerSecond),
+    description(std::move(description)) {}
+
+PigeonInfo::PigeonInfo(const PigeonInfo& other) = default;
+
+PigeonInfo& PigeonInfo::operator=(const PigeonInfo& other) = default;
+
+PigeonInfo::~PigeonInfo() = default;
+
+ostream& operator<<(ostream& out, const PigeonInfo& info)
+{
+    out << "-->" << info.name << "\n";
+    out << "Coins/sec: " << info.poopPerSecond << "\n";
+    out << "Description: " << info.description << "\n";
+    return out;
+}
+
 
 Encyclopedia::Encyclopedia() = default;
 
@@ -15,7 +38,7 @@ void Encyclopedia::updateEncyclopedia(const string& name, const float poopPerSec
     for (const PigeonInfo& entry : pigeons)
         if (entry.name == name)
             return;
-    pigeons.push_back({name, poopPerSecond, description});
+    pigeons.emplace_back(name, poopPerSecond, description);
 }
 
 void Encyclopedia::showPigeonInfo(const string& name) const  //test
@@ -24,9 +47,7 @@ void Encyclopedia::showPigeonInfo(const string& name) const  //test
     {
         if (entry.name == name)
         {
-            cout << "-->" << entry.name << "\n";
-            cout << "Coins/sec: " << entry.poopPerSecond << "\n";
-            cout << "Description: " << entry.description << "\n\n";
+            cout << entry << "\n";
             return;
         }
     }
@@ -42,9 +63,5 @@ void Encyclopedia::showAll() const
     }
     cout << "\n         ENCYCLOPEDIA\n";
     for (const PigeonInfo& entry : pigeons)
-    {
-        std::cout << "-->" << entry.name << "\n";
-        std::cout << "Coins/sec: " << entry.poopPerSecond << "\n";
-        std::cout << "Description: " << entry.description << "\n\n";
-    }
+        cout << entry << "\n";
 }

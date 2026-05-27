@@ -16,6 +16,7 @@ protected:
     float weak_poop_chance;
     float strong_poop_chance;
     float poopPerSecond;
+    int basePrice;
     std::chrono::steady_clock::time_point lastPoopTime;
     BerryType activeBerryType;
     std::chrono::steady_clock::time_point berryEffectExpiration;
@@ -29,7 +30,11 @@ protected:
     [[nodiscard]] virtual Pigeon* createNextEvolution() const = 0;
 
 public:
+    friend bool operator==(const Pigeon& lhs, const Pigeon& rhs);
 
+    // Constructor for pigeons available in the shop (tiers 1-13).
+    Pigeon(int tier, int level, float weakChance, float strongChance, float pps, int basePrice);
+    // Constructor for pigeons NOT available in the shop (tiers 14-16).
     Pigeon(int tier, int level, float weakChance, float strongChance, float pps);
     Pigeon(const Pigeon& other);
     Pigeon& operator=(const Pigeon& other);
@@ -61,6 +66,8 @@ public:
     [[nodiscard]] float getWeakPoopChance() const;
     [[nodiscard]] float getStrongPoopChance() const;
     [[nodiscard]] float getPoopPerSecond() const;
+    [[nodiscard]] virtual int getBasePrice() const;
+    [[nodiscard]] virtual bool isAvailableInShop() const;
 };
 
 
@@ -190,6 +197,10 @@ public:
     [[nodiscard]] Pigeon* createNextEvolution() const override;
 };
 
+// ── Final-tier pigeons: never sold in the shop ─────────────────────────────
+// These use the no-price constructor overload and override isAvailableInShop()
+// to return false, making their shop-exclusion explicit and polymorphic.
+
 class Capturegeon : public Pigeon {
     string description;
 public:
@@ -197,6 +208,7 @@ public:
     [[nodiscard]] string getName() const override;
     [[nodiscard]] string getDescription() const override;
     [[nodiscard]] Pigeon* createNextEvolution() const override;
+    [[nodiscard]] bool isAvailableInShop() const override;
 };
 
 class Bellybird : public Pigeon {
@@ -206,6 +218,7 @@ public:
     [[nodiscard]] string getName() const override;
     [[nodiscard]] string getDescription() const override;
     [[nodiscard]] Pigeon* createNextEvolution() const override;
+    [[nodiscard]] bool isAvailableInShop() const override;
 };
 
 class Pigeostrich : public Pigeon {
@@ -216,5 +229,6 @@ public:
     [[nodiscard]] string getDescription() const override;
     [[nodiscard]] bool hasNextEvolution() const override;
     [[nodiscard]] Pigeon* createNextEvolution() const override;
+    [[nodiscard]] bool isAvailableInShop() const override;
 };
 #endif

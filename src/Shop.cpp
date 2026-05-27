@@ -6,27 +6,27 @@
 
 using namespace std;
 
-Shop::Shop() :
-    pigeonOffers({
-        {1, "Baby Pigeon", 15, 0},
-        {2, "Normal Pigeon", 40, 0},
-        {3, "Chunky Pigeon", 150, 0},
-        {4, "Fat Pigeon", 425, 0},
-        {5, "Obese Pigeon", 1000, 0},
-        {6, "Mutant Pigeon", 2500, 0},
-        {7, "Pigeonworm", 3500, 0},
-        {8, "Spingeon", 5000, 0},
-        {9, "Cheerlegeon", 6900, 0},
-        {10, "Chickenigeon", 9500, 0},
-        {11, "Twingeon", 13500, 0},
-        {12, "Pidgeknowledge", 18000, 0},
-        {13, "Pidgeyes", 26000, 0},
-    }),
-    berryOffers({
+Shop::Shop()
+{
+    for (int tier = 1; ; ++tier)
+    {
+        Pigeon* prototype = Pigeon::createByTier(tier);
+        if (prototype == nullptr)
+            break;
+        if (prototype->isAvailableInShop())
+            pigeonOffers.push_back({tier,prototype->getName(),prototype->getBasePrice(),0});
+
+
+        delete prototype;
+    }
+
+    berryOffers = {
         {BerryType::Red, Berry::getNameByType(BerryType::Red), 100},
         {BerryType::Yellow, Berry::getNameByType(BerryType::Yellow), 100},
         {BerryType::Purple, Berry::getNameByType(BerryType::Purple), 100}
-    }) {}
+    };
+}
+
 const PigeonOffer* Shop::findPigeonOffer(const int pigeonTier) const
 {
     for (const PigeonOffer& offer : pigeonOffers)

@@ -1,101 +1,198 @@
-# Nu primesc notă pentru că nu am pus titlu și descriere
+# Pigeon Evolution
 
-### Folosiți template-ul corespunzător grupei voastre!
+Pigeon Evolution is a small terminal game inspired by games like Cow Evolution.
+You start with simple pigeons from crates, merge matching pigeons together, and
+slowly discover stranger and bigger pigeon forms.
 
-| Laborant  | Link template                                |
-|-----------|----------------------------------------------|
-| Dragoș B  | https://github.com/Ionnier/oop-template      |
-| Tiberiu M | https://github.com/MaximTiberiu/oop-template |
-| Marius MC | https://github.com/mcmarius/oop-template     |
+The final goal is to discover the largest pigeon in the evolution chain. The
+game starts with a Baby Pigeon and keeps going through many forms until the final
+one, the Pigeostrich.
 
-## Instrucțiuni de compilare
+## Game Idea
 
-Proiectul este configurat cu CMake.
+The main idea is simple:
 
-Instrucțiuni pentru terminal:
+1. Open crates to get pigeons.
+2. Merge two pigeons of the same type.
+3. The merged pigeon evolves into a bigger one.
+4. Bigger pigeons create better poop, which gives you more coins.
+5. Use coins in the shop to buy pigeons or berries.
+6. Keep discovering new pigeons until you reach the final evolution.
 
-1. Pasul de configurare
+If you have played Cow Evolution, the flow should feel familiar: crates give you
+basic animals, two matching animals merge into a better one, and the collection
+keeps growing from there.
+
+## Game Loop
+
+The game runs in a loop in the terminal.
+
+At the start, the game shows a menu. After every command, the board updates:
+
+- pigeons can create poop over time
+- poop is collected automatically
+- coins are added to your balance
+- berry effects are checked
+- new discovered pigeons are added to the encyclopedia
+
+The game does not end when you make a wrong command. Invalid commands are handled
+with exceptions, the message is printed, and the menu continues. To stop playing,
+type:
+
+```text
+exit
+```
+
+## Commands
+
+When the menu appears, you can use these commands:
+
+```text
+1 - Open crate
+2 - Merge pigeons
+3 - Show encyclopedia
+4 - Open shop
+5 - Print board and coins
+6 - Feed berry
+exit - Quit game
+```
+
+### 1 - Open crate
+
+Opens a crate and adds a new Baby Pigeon to your board.
+
+### 2 - Merge pigeons
+
+Shows your current board, then asks for two pigeon indexes.
+
+If the two pigeons are the same type and can still evolve, they merge into the
+next pigeon form.
+
+Example:
+
+```text
+2
+0 1
+```
+
+This tries to merge the pigeons at index `0` and index `1`.
+
+### 3 - Show encyclopedia
+
+Shows the pigeons you have discovered so far.
+
+Each entry shows:
+
+- pigeon name
+- coins per second
+- description
+
+### 4 - Open shop
+
+Opens the shop menu. The shop has two categories:
+
+```text
+1 - Pigeons
+2 - Berries
+```
+
+Pigeons become available in the shop after you progress far enough. Berries can
+be bought with coins and used for special effects.
+
+If you try to buy something without enough coins, the game shows a message and
+continues.
+
+### 5 - Print board and coins
+
+Shows all pigeons currently on your board and your current number of coins.
+
+If a pigeon has an active berry effect, the board also shows how much time is
+left for that effect.
+
+### 6 - Feed berry
+
+Shows your board and berry inventory, then asks for:
+
+```text
+berry_type pigeon_index
+```
+
+Example:
+
+```text
+6
+1 0
+```
+
+This feeds berry type `1` to the pigeon at index `0`.
+
+Only one berry effect can be active at a time. If you try to feed another berry
+while one is already active, the game blocks it and continues.
+
+## Berry Types
+
+Berries give temporary special effects to pigeons.
+
+### Red Berry
+
+The Red Berry makes the pigeon poop faster for a short time.
+
+This helps you collect coins more quickly.
+
+### Yellow Berry
+
+The Yellow Berry gives you bonus coins when the pigeon is merged.
+
+If a pigeon with an active Yellow Berry effect is part of a successful merge, you
+receive extra coins based on that pigeon.
+
+### Purple Berry
+
+The Purple Berry helps you get a bigger pigeon.
+
+After the Purple Berry effect expires, the pigeon can evolve into its next form.
+This is useful when you want to progress faster through the evolution chain.
+
+## Coins
+
+Coins come from poop. Pigeons create poop over time, and the game automatically
+collects it during the update loop.
+
+Better pigeons can create better poop, and better poop is worth more coins.
+
+Coins are used to buy:
+
+- pigeons from the shop
+- berries from the shop
+
+## Encyclopedia
+
+The encyclopedia keeps track of pigeons you have discovered.
+
+When a new pigeon appears on the board, it is added to the encyclopedia. This
+helps you see your progress through the evolution chain.
+
+## Final Goal
+
+The main goal is to discover the largest pigeon.
+
+You start with small pigeons from crates and keep merging them into bigger and
+weirder forms. The final discovered pigeon is the end of the current evolution
+chain.
+
+In this version, the largest pigeon is the Pigeostrich.
+
+## Building the Project
+
+The project uses CMake.
+
+Example build commands:
+
 ```sh
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
-# sau ./scripts/cmake.sh configure
+cmake --build build
 ```
 
-Sau pe Windows cu GCC:
-```sh
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -G Ninja
-# sau ./scripts/cmake.sh configure -g Ninja
-```
+Then run the generated executable.
 
-La acest pas putem cere să generăm fișiere de proiect pentru diverse medii de lucru.
-
-## Cerințe obligatorii
-
-Nerespectarea duce la nepunctarea proiectului
-
-  - programul va fi scris în C++
-  - programul va avea un meniu interactiv (doar pentru ilustrarea funcționalității)
-  - programul nu are erori de compilare
-  - fară variabile globale
-  - datele membre private(sau protected)
-  - GitHub Actions trecute
-  - commit-uri pe Git adecvate si punctuale
-  - folosirea a funcționalităților limbajului fără sens
-  - folosirea a funcționlităților limbajului cu scopul de a încălca "legal" o altă regulă
-      - folosirea excesivă a claselor friend
-      - folosirea excesviă a elementelor statice
-  - lipsa separarea implementarii de definitie
-
-## Cerințe
-- pentru fiecare cerință (sau subcerință) neîndeplinită se scade **1** punct
-- [ ] definirea a minim **2-3 ieararhii de clase** care sa interactioneze in cadrul temei alese (fie prin compunere, agregare sau doar sa apeleze metodele celeilalte intr-un mod logic)
-  - minim o clasa cu:
-    - [ ] constructori de inițializare [*](https://github.com/Ionnier/poo/tree/main/labs/L02#crearea-obiectelor)
-    - [ ] constructor supraîncărcat [*](https://github.com/Ionnier/poo/tree/main/labs/L02#supra%C3%AEnc%C4%83rcarea-func%C8%9Biilor)
-    - [ ] constructori de copiere [*](https://github.com/Ionnier/poo/tree/main/labs/L02#crearea-obiectelor)
-    - [ ] `operator=` de copiere [*](https://github.com/Ionnier/poo/tree/main/labs/L02#supra%C3%AEnc%C4%83rcarea-operatorilor)
-    - [ ] destructor [*](https://github.com/Ionnier/poo/tree/main/labs/L02#crearea-obiectelor)
-    - [ ] `operator<<` pentru afișare (std::ostream) [*](https://github.com/Ionnier/poo/blob/main/labs/L02/fractie.cpp#L123)
-    - [ ] `operator>>` pentru citire (std::istream) [*](https://github.com/Ionnier/poo/blob/main/labs/L02/fractie.cpp#L128)
-    - [ ] alt operator supraîncărcat ca funcție membră [*](https://github.com/Ionnier/poo/blob/main/labs/L02/fractie.cpp#L32)
-    - [ ] alt operator supraîncărcat ca funcție non-membră [*](https://github.com/Ionnier/poo/blob/main/labs/L02/fractie.cpp#L39) - nu neaparat ca friend
-  - in derivate
-      - [ ] implementarea funcționalităților alese prin [upcast](https://github.com/Ionnier/poo/tree/main/labs/L04#solu%C8%9Bie-func%C8%9Bii-virtuale-late-binding) și [downcast](https://github.com/Ionnier/poo/tree/main/labs/L04#smarter-downcast-dynamic-cast)
-        - aceasta va fi făcută prin **2-3** metode specifice temei alese
-        - funcțiile pentru citire / afișare sau destructorul nu sunt incluse deși o să trebuiască să le implementați 
-      - [ ] apelarea constructorului din clasa de bază din [constructori din derivate](https://github.com/Ionnier/poo/tree/main/labs/L04#comportamentul-constructorului-la-derivare)
-      - [ ] suprascris [cc](https://github.com/Ionnier/poo/tree/main/labs/L04#comportamentul-constructorului-de-copiere-la-derivare)/op= pentru copieri/atribuiri corecte
-      - [ ] destructor [virtual](https://github.com/Ionnier/poo/tree/main/labs/L04#solu%C8%9Bie-func%C8%9Bii-virtuale-late-binding)
-  - pentru celelalte clase se va definii doar ce e nevoie
-  - minim o ierarhie mai dezvoltata (cu 2-3 clase dintr-o clasa de baza)
-  - ierarhie de clasa se considera si daca exista doar o clasa de bază însă care nu moștenește dintr-o clasă din altă ierarhie
-- [ ] cât mai multe `const` [*](https://github.com/Ionnier/poo/tree/main/labs/L04#reminder-const-everywhere)
-- [ ] funcții și atribute `static` (în clase) [*](https://github.com/Ionnier/poo/tree/main/labs/L04#static)
-  - [ ] 1+ atribute statice non-triviale 
-  - [ ] 1+ funcții statice non-triviale
-- [ ] excepții [*](https://github.com/Ionnier/poo/tree/main/labs/L04#exception-handling)
-  - porniți de la `std::exception`
-  - ilustrați propagarea excepțiilor
-  - ilustrati upcasting-ul în blocurile catch
-  - minim folosit într-un loc în care tratarea erorilor în modurile clasice este mai dificilă
-- [ ] folosirea unei clase abstracte [*](https://github.com/Ionnier/poo/tree/main/labs/L04#clase-abstracte)
-- [ ] clase template
-  - [ ] crearea unei clase template [*](https://github.com/Ionnier/poo/tree/main/labs/L08)
-  - [ ] 2 instanțieri ale acestei clase
-- [ ] STL [*](https://github.com/Ionnier/poo/tree/main/labs/L07#stl)
-  - [ ] utilizarea a două structuri (containere) diferite (vector, list sau orice alt container care e mai mult sau mai putin un array)
-  - [ ] utilizarea a unui algoritm cu funcție lambda (de exemplu, sort, transform)
--  [ ] Design Patterns [*](https://github.com/Ionnier/poo/tree/main/labs/L08)
-  - [ ] utilizarea a două șabloane de proiectare
-
-### Observații
-
-* Pot exista depunctări până la 2p pentru diferite aspecte precum:
-  - memory leak-uri
-  - nefolosirea destructorului virtual la nevoie
-  - abuzarea de diferite concepte (toate funcțiile declarate virtual)
-  - apelarea de funcții virtual în constructori
-
-* În general, acestea sunt prezente în [CppCoreGuideline](https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md), dar nu e nevoie să parcurgeți documentul, doar să scrieți codul suficient de organizat
-
-* folderele `build/` și `install_dir/` sunt adăugate în fișierul `.gitignore` deoarece
-conțin fișiere generate și nu ne ajută să le versionăm.
+If you are using CLion, you can open the project and run the `oop` target.

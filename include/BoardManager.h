@@ -20,9 +20,16 @@ private:
     [[nodiscard]] bool isValidPigeonIndex(int index) const;
     [[nodiscard]] int getBerryInventoryCount(BerryType berryType) const;
 
-public:
     BoardManager();
+
+
+public:
+
     ~BoardManager();
+    static BoardManager& getInstance();
+
+    BoardManager(const BoardManager&) = delete;
+    BoardManager &operator=(const BoardManager) = delete;
 
     void openCrate();
     void addPigeon(Pigeon* pigeon);

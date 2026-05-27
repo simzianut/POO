@@ -1,6 +1,33 @@
 #include "BoardManager.h"
 #include "Crate.h"
+#include "GameException.h"
 #include <iostream>
+#include <string>
+
+namespace {
+int readIntCommand(const std::string& commandName)
+{
+    std::string token;
+    if (!(std::cin >> token))
+        throw InvalidCommandException(commandName);
+
+    size_t parsedCharacters = 0;
+    int value = 0;
+    try
+    {
+        value = std::stoi(token, &parsedCharacters);
+    }
+    catch (const std::exception&)
+    {
+        throw InvalidCommandException(token);
+    }
+
+    if (parsedCharacters != token.size())
+        throw InvalidCommandException(token);
+
+    return value;
+}
+}
 
 
 BoardManager::BoardManager() :
@@ -13,6 +40,12 @@ BoardManager::~BoardManager()
     for (const Pigeon* p : activePigeons)
         delete p;
     activePigeons.clear();
+}
+
+BoardManager& BoardManager :: getInstance()
+{
+    static BoardManager instance;
+    return instance;
 }
 
 bool BoardManager::isValidPigeonIndex(const int index) const
@@ -57,13 +90,16 @@ void BoardManager::spawnMutantPigeon()
 void BoardManager::performMerge(const int index1, const int index2)
 {
     if (index1 == index2 || !isValidPigeonIndex(index1) || !isValidPigeonIndex(index2))
-    {
-        cout << "Invalid merge selection!\n";
-        return;
-    }
+        throw InvalidCommandException("merge indices");
 
     Pigeon* p1 = activePigeons[index1];
     Pigeon* p2 = activePigeons[index2];
+
+    if (!(*p1 == *p2))
+    {
+        cout << "Merge failed. Those pigeons cannot be combined.\n";
+        return;
+    }
 
     if (p1->hasActiveBerryEffect() && p2->hasActiveBerryEffect())
     {
@@ -260,25 +296,24 @@ void BoardManager::showEncyclopedia() const
 void BoardManager::showShop()
 {
     shop.showCategories();
-    int category;
-    cin >> category;
+    const int category = readIntCommand("shop category");
     if (category == 1)
     {
         shop.showPigeonCategory(*this);
         if (shop.getAvailablePigeonOffers(*this).empty())
             return;
 
-        int pigeonTier;
-        cin >> pigeonTier;
+        const int pigeonTier = readIntCommand("pigeon tier");
         buyNewPigeon(pigeonTier);
     }
     else if (category == 2)
     {
         shop.showBerryCategory();
-        int berryType;
-        cin >> berryType;
+        const int berryType = readIntCommand("berry type");
         buyNewBerry(berryType);
     }
+    else
+        throw InvalidCommandException(std::to_string(category));
 }
 
 void BoardManager::showFeedBerryMenu()
@@ -287,26 +322,19 @@ void BoardManager::showFeedBerryMenu()
     printBerryInventory();
 
     cout << "Choose berry type and pigeon index: ";
-    int berryType, pigeonIndex;
-    cin >> berryType >> pigeonIndex;
+    const int berryType = readIntCommand("berry type");
+    const int pigeonIndex = readIntCommand("pigeon index");
     feedBerry(berryType, pigeonIndex);
 }
 
 void BoardManager::buyNewPigeon(const int desiredPigeonTier)
 {
     if (!shop.canBuyPigeon(*this, desiredPigeonTier))
-    {
-        cout << "That pigeon is not available in the shop.\n";
-        return;
-    }
+        throw InvalidCommandException(std::to_string(desiredPigeonTier));
 
     const int price = shop.getPigeonPrice(desiredPigeonTier);
     if (coins < price)
-    {
-        cout << "Not enough coins. Price: " << price
-             << " coins, your coins: " << coins << ".\n";
-        return;
-    }
+        throw NotEnoughCoinsException(price, coins);
 
     Pigeon* pigeon = Pigeon::createByTier(desiredPigeonTier);
     if (pigeon == nullptr)
@@ -336,18 +364,11 @@ void BoardManager::buyNewBerry(int desiredBerryType)
 {
     BerryType berryType = Berry::typeFromInt(desiredBerryType);
     if (!shop.canBuyBerry(berryType))
-    {
-        cout << "That berry is not available in the shop.\n";
-        return;
-    }
+        throw InvalidCommandException(std::to_string(desiredBerryType));
 
     const int price = shop.getBerryPrice(berryType);
     if (coins < price)
-    {
-        cout << "Not enough coins. Price: " << price
-             << " coins, your coins: " << coins << ".\n";
-        return;
-    }
+        throw NotEnoughCoinsException(price, coins);
 
     coins -= price;
     berryInventory[static_cast<int>(berryType)]++;
@@ -361,10 +382,7 @@ void BoardManager::feedBerry(const int desiredBerryType, const int pigeonIndex)
 {
     BerryType berryType = Berry::typeFromInt(desiredBerryType);
     if (!Berry::isValidType(berryType))
-    {
-        cout << "Invalid berry selection.\n";
-        return;
-    }
+        throw InvalidCommandException(std::to_string(desiredBerryType));
 
     if (getBerryInventoryCount(berryType) <= 0)
     {
@@ -373,16 +391,10 @@ void BoardManager::feedBerry(const int desiredBerryType, const int pigeonIndex)
     }
 
     if (!isValidPigeonIndex(pigeonIndex))
-    {
-        cout << "Invalid pigeon selection.\n";
-        return;
-    }
+        throw InvalidCommandException(std::to_string(pigeonIndex));
 
     if (hasAnyActiveBerryEffect())
-    {
-        cout << "A berry effect is already active. Wait until it ends before feeding another berry.\n";
-        return;
-    }
+        throw BerryAlreadyInUseException();
 
     Pigeon* pigeon = activePigeons[pigeonIndex];
     pigeon->applyBerryEffect(berryType, berryEffectDurationSeconds);

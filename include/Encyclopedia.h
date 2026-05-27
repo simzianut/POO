@@ -1,14 +1,25 @@
 #ifndef ENCYCLOPEDIA_H
 #define ENCYCLOPEDIA_H
 
+#include <iosfwd>
 #include <string>
 #include <vector>
 using namespace std;
 
-struct PigeonInfo {
+struct PigeonInfo
+{
     string name;
     float  poopPerSecond;
     string description;
+
+    PigeonInfo();
+    PigeonInfo(string name, float poopPerSecond, string description);
+    PigeonInfo(const PigeonInfo& other);
+    PigeonInfo& operator=(const PigeonInfo& other);
+    ~PigeonInfo();
+
+
+    friend ostream& operator<<(ostream& out, const PigeonInfo& info);
 };
 
 class Encyclopedia {
