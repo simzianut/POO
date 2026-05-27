@@ -196,3 +196,6 @@ cmake --build build
 Then run the generated executable.
 
 If you are using CLion, you can open the project and run the `oop` target.
+
+Special thanks to Poppy!
+![alt text](poppy-1.jpeg)

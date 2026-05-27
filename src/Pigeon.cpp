@@ -1,6 +1,7 @@
 #include "Pigeon.h"
 #include "Poop.h"
 #include <chrono>
+#include <cstdlib>
 #include <vector>
 using namespace std;
 
@@ -8,37 +9,19 @@ using namespace std;
 Pigeon::Pigeon(const int tier, const int level, const float weakChance, const float strongChance, const float pps, const int basePrice):
     tier(tier), level(level), weak_poop_chance(weakChance), strong_poop_chance(strongChance),
     poopPerSecond(pps), basePrice(basePrice), lastPoopTime(std::chrono::steady_clock::now()),
-    activeBerryType(BerryType::None) {}
+    activeBerryType(BerryType::None),
+    berryEffectExpiration(std::chrono::steady_clock::time_point()) {}
 
 
 Pigeon::Pigeon(const int tier, const int level, const float weakChance, const float strongChance, const float pps):
     tier(tier), level(level), weak_poop_chance(weakChance), strong_poop_chance(strongChance),
     poopPerSecond(pps), basePrice(0), lastPoopTime(std::chrono::steady_clock::now()),
-    activeBerryType(BerryType::None) {}
+    activeBerryType(BerryType::None),
+    berryEffectExpiration(std::chrono::steady_clock::time_point()) {}
 
-Pigeon::Pigeon(const Pigeon& other):
-    tier(other.tier), level(other.level), weak_poop_chance(other.weak_poop_chance),
-    strong_poop_chance(other.strong_poop_chance), poopPerSecond(other.poopPerSecond),
-    basePrice(other.basePrice), lastPoopTime(other.lastPoopTime),
-    activeBerryType(other.activeBerryType),
-    berryEffectExpiration(other.berryEffectExpiration) {}
+Pigeon::Pigeon(const Pigeon& other) = default;
 
-Pigeon& Pigeon::operator=(const Pigeon& other)
-{
-    if (this != &other)
-    {
-        tier = other.tier;
-        level = other.level;
-        weak_poop_chance = other.weak_poop_chance;
-        strong_poop_chance = other.strong_poop_chance;
-        poopPerSecond = other.poopPerSecond;
-        basePrice = other.basePrice;
-        lastPoopTime = other.lastPoopTime;
-        activeBerryType = other.activeBerryType;
-        berryEffectExpiration = other.berryEffectExpiration;
-    }
-    return *this;
-}
+Pigeon& Pigeon::operator=(const Pigeon& other) = default;
 
 Pigeon::~Pigeon() = default;
 
@@ -92,6 +75,7 @@ Poop* Pigeon::dropPoop() const
     return Poop::createByLevel(level);
 }
 
+// cppcheck-suppress unusedFunction
 Poop* Pigeon::dropPoopIfReady()
 {
     vector<Poop*> poops = dropPoopsIfReady();
@@ -208,10 +192,12 @@ int Pigeon::getLevel() const
 {
     return level;
 }
+// cppcheck-suppress unusedFunction
 float Pigeon::getWeakPoopChance() const
 {
     return weak_poop_chance;
 }
+// cppcheck-suppress unusedFunction
 float Pigeon::getStrongPoopChance() const
 {
     return strong_poop_chance;
@@ -253,8 +239,7 @@ void Pigeon::inheritBerryEffectFrom(const Pigeon& other)
     activeBerryType = other.activeBerryType;
     berryEffectExpiration = other.berryEffectExpiration;
 
-    if (activeBerryType == BerryType::Red)
-        lastPoopTime = std::chrono::steady_clock::now();
+    lastPoopTime = other.lastPoopTime;
 }
 
 bool Pigeon::hasBerryEffect() const

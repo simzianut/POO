@@ -27,7 +27,8 @@ ostream& operator<<(ostream& out, const PigeonInfo& info)
 
 Encyclopedia::Encyclopedia() = default;
 
-vector<PigeonInfo> Encyclopedia::getPigeons() const
+// cppcheck-suppress unusedFunction
+const vector<PigeonInfo>& Encyclopedia::getPigeons() const
 {
     return pigeons;
 }
@@ -40,6 +41,7 @@ void Encyclopedia::updateEncyclopedia(const string& name, const float poopPerSec
     pigeons.emplace_back(name, poopPerSecond, description);
 }
 
+// cppcheck-suppress unusedFunction
 void Encyclopedia::showPigeonInfo(const string& name) const
 {
     for (const auto &entry : pigeons)

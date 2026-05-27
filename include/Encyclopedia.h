@@ -27,7 +27,7 @@ private:
 public:
     Encyclopedia();
 
-    [[nodiscard]] vector<PigeonInfo> getPigeons() const;
+    [[nodiscard]] const vector<PigeonInfo>& getPigeons() const;
     void showPigeonInfo(const string& name) const;
     void showAll() const;
 

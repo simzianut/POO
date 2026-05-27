@@ -1,9 +1,12 @@
 #include "Berry.h"
+#include <utility>
 using namespace std;
 
 Berry::Berry(string color, const BerryType type) : color(std::move(color)), type(type) {}
 
-string Berry::getColor() const { return color; }
+// cppcheck-suppress unusedFunction
+const string& Berry::getColor() const { return color; }
+// cppcheck-suppress unusedFunction
 BerryType Berry::getType() const { return type; }
 
 bool Berry::isValidType(const BerryType type)
@@ -34,6 +37,7 @@ string Berry::getNameByType(const BerryType type)
     }
 }
 
+// cppcheck-suppress unusedFunction
 string Berry::getColorByType(const BerryType type)
 {
     switch (type)

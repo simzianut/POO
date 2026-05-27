@@ -109,39 +109,38 @@ public:
 
 
 template <typename Traits>
-class FinalTierPigeon final : public Pigeon {
+class TerminalPigeon final : public Pigeon {
 protected:
     [[nodiscard]] bool hasNextEvolution() const override
     {
-        return Traits::tier < 16;
+        return false;
     }
 
     [[nodiscard]] Pigeon* createNextEvolution() const override
     {
-        if (!hasNextEvolution())
-            return nullptr;
-        return Pigeon::createByTier(Traits::tier + 1);
+        return nullptr;
     }
 
 public:
-    FinalTierPigeon() :
+    TerminalPigeon() :
         Pigeon(
             Traits::tier,
             Traits::level,
             Traits::weakPoopChance,
             Traits::strongPoopChance,
-            Traits::poopPerSecond
+            Traits::poopPerSecond,
+            Traits::basePrice
         ) {}
 
-    FinalTierPigeon(const FinalTierPigeon& other) : Pigeon(other) {}
+    TerminalPigeon(const TerminalPigeon& other) : Pigeon(other) {}
 
-    FinalTierPigeon& operator=(const FinalTierPigeon& other)
+    TerminalPigeon& operator=(const TerminalPigeon& other)
     {
         Pigeon::operator=(other);
         return *this;
     }
 
-    ~FinalTierPigeon() override = default;
+    ~TerminalPigeon() override = default;
 
     [[nodiscard]] string getName() const override
     {
@@ -153,10 +152,6 @@ public:
         return Traits::description;
     }
 
-    [[nodiscard]] bool isAvailableInShop() const override
-    {
-        return false;
-    }
 };
 
 struct BabyPigeonTraits {
@@ -242,7 +237,7 @@ struct SpingeonTraits {
     static constexpr float weakPoopChance = 0.90f;
     static constexpr float strongPoopChance = 0.10f;
     static constexpr float poopPerSecond = 190.0f;
-    static constexpr int basePrice = 5000;
+    static constexpr int basePrice = 4900;
     static constexpr const char* name = "Spingeon";
     static constexpr const char* description = "A spring-loaded pigeon with strange bounce";
 };
@@ -253,7 +248,7 @@ struct CheerlegeonTraits {
     static constexpr float weakPoopChance = 0.65f;
     static constexpr float strongPoopChance = 0.35f;
     static constexpr float poopPerSecond = 415.0f;
-    static constexpr int basePrice = 6900;
+    static constexpr int basePrice = 6860;
     static constexpr const char* name = "Cheerlegeon";
     static constexpr const char* description = "Too enthusiastic for the nest";
 };
@@ -264,7 +259,7 @@ struct ChickenigeonTraits {
     static constexpr float weakPoopChance = 0.15f;
     static constexpr float strongPoopChance = 0.85f;
     static constexpr float poopPerSecond = 865.0f;
-    static constexpr int basePrice = 9500;
+    static constexpr int basePrice = 9604;
     static constexpr const char* name = "Chickenigeon";
     static constexpr const char* description = "Somewhere between cluck and coo";
 };
@@ -275,7 +270,7 @@ struct TwingeonTraits {
     static constexpr float weakPoopChance = 0.90f;
     static constexpr float strongPoopChance = 0.10f;
     static constexpr float poopPerSecond = 1900.0f;
-    static constexpr int basePrice = 13500;
+    static constexpr int basePrice = 13445;
     static constexpr const char* name = "Twingeon";
     static constexpr const char* description = "A suspiciously doubled pigeon";
 };
@@ -286,7 +281,7 @@ struct PidgeknowledgeTraits {
     static constexpr float weakPoopChance = 0.65f;
     static constexpr float strongPoopChance = 0.35f;
     static constexpr float poopPerSecond = 4150.0f;
-    static constexpr int basePrice = 18000;
+    static constexpr int basePrice = 18823;
     static constexpr const char* name = "Pidgeknowledge";
     static constexpr const char* description = "Knows more than it should";
 };
@@ -297,7 +292,7 @@ struct PidgeeyesTraits {
     static constexpr float weakPoopChance = 0.15f;
     static constexpr float strongPoopChance = 0.85f;
     static constexpr float poopPerSecond = 8650.0f;
-    static constexpr int basePrice = 26000;
+    static constexpr int basePrice = 26352;
     static constexpr const char* name = "Pidgeyes";
     static constexpr const char* description = "Always watching the next merge";
 };
@@ -308,6 +303,7 @@ struct CapturegeonTraits {
     static constexpr float weakPoopChance = 0.90f;
     static constexpr float strongPoopChance = 0.10f;
     static constexpr float poopPerSecond = 19000.0f;
+    static constexpr int basePrice = 36892;
     static constexpr const char* name = "Capturegeon";
     static constexpr const char* description = "A pigeon with collector instincts";
 };
@@ -318,6 +314,7 @@ struct BellybirdTraits {
     static constexpr float weakPoopChance = 0.65f;
     static constexpr float strongPoopChance = 0.35f;
     static constexpr float poopPerSecond = 41500.0f;
+    static constexpr int basePrice = 51648;
     static constexpr const char* name = "Bellybird";
     static constexpr const char* description = "Mostly belly, technically bird";
 };
@@ -328,6 +325,7 @@ struct PigeostrichTraits {
     static constexpr float weakPoopChance = 0.15f;
     static constexpr float strongPoopChance = 0.85f;
     static constexpr float poopPerSecond = 86500.0f;
+    static constexpr int basePrice = 72307;
     static constexpr const char* name = "Pigeostrich";
     static constexpr const char* description = "The tallest possible pigeon mistake";
 };
@@ -346,8 +344,8 @@ using Twingeon = ShopPigeon<TwingeonTraits>;
 using Pidgeknowledge = ShopPigeon<PidgeknowledgeTraits>;
 using Pidgeeyes = ShopPigeon<PidgeeyesTraits>;
 
-using Capturegeon = FinalTierPigeon<CapturegeonTraits>;
-using Bellybird = FinalTierPigeon<BellybirdTraits>;
-using Pigeostrich = FinalTierPigeon<PigeostrichTraits>;
+using Capturegeon = ShopPigeon<CapturegeonTraits>;
+using Bellybird = ShopPigeon<BellybirdTraits>;
+using Pigeostrich = TerminalPigeon<PigeostrichTraits>;
 
 #endif

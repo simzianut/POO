@@ -42,7 +42,7 @@ public:
     [[nodiscard]] int getPigeonTimesBought(int pigeonTier) const;
     bool recordPigeonPurchase(int pigeonTier);
 
-    [[nodiscard]] std::vector<BerryOffer> getBerryOffers() const;
+    [[nodiscard]] const std::vector<BerryOffer>& getBerryOffers() const;
     [[nodiscard]] bool canBuyBerry(BerryType berryType) const;
     [[nodiscard]] int getBerryPrice(BerryType berryType) const;
 };

@@ -11,7 +11,10 @@ istream& operator>>(istream& in, BoardManager& board)
 
     string token;
     if (!(in >> token))
+    {
+        board.expectedInputName.clear();
         throw InvalidCommandException(commandName);
+    }
 
     size_t parsedCharacters = 0;
     int value = 0;
@@ -68,11 +71,16 @@ int BoardManager::getBerryInventoryCount(BerryType berryType) const
 
 bool BoardManager::hasDiscoveredLargestPigeon() const
 {
-    for (const Pigeon* pigeon : activePigeons)
-        if (dynamic_cast<const Pigeostrich*>(pigeon) != nullptr)
-            return true;
+    return any_of(activePigeons.begin(), activePigeons.end(), [](const Pigeon* pigeon) {
+        return dynamic_cast<const Pigeostrich*>(pigeon) != nullptr;
+    });
+}
 
-    return false;
+int BoardManager::readIntInput(const string& inputName)
+{
+    expectedInputName = inputName;
+    cin >> *this;
+    return lastInputCommand;
 }
 
 void BoardManager::sortPigeonsByTier()
@@ -101,12 +109,14 @@ void BoardManager::addPigeon(Pigeon* pigeon)
     update();
 }
 
+// cppcheck-suppress unusedFunction
 void BoardManager::spawnBabyPigeon(const int count)
 {
     for (int i = 1; i <= count; i++)
         addPigeon(new BabyPigeon());
 }
 
+// cppcheck-suppress unusedFunction
 void BoardManager::spawnMutantPigeon()
 {
     addPigeon(new MutantPigeon());
@@ -146,7 +156,7 @@ void BoardManager::performMerge(const int index1, const int index2)
 
         if (berryPigeon != nullptr && berryPigeon->hasActiveBerryEffect(BerryType::Yellow))
         {
-            int earned = static_cast<int>(5000.0f * berryPigeon->getPoopPerSecond());
+            int earned = static_cast<int>(5.0f * berryPigeon->getPoopPerSecond());
             coins += earned;
             cout << "Yellow Berry bonus: +" << earned << " coins.\n";
         }
@@ -156,7 +166,10 @@ void BoardManager::performMerge(const int index1, const int index2)
 
         activePigeons[index1] = nullptr;
         activePigeons[index2] = nullptr;
-        erase(activePigeons, nullptr);
+        activePigeons.erase(
+            remove(activePigeons.begin(), activePigeons.end(), nullptr),
+            activePigeons.end()
+        );
 
         activePigeons.push_back(newPigeon);
 
@@ -210,6 +223,7 @@ int BoardManager::getTotalPigeonsAlive() const
     return static_cast<int>(activePigeons.size());
 }
 
+// cppcheck-suppress unusedFunction
 int BoardManager::getBiggestPigeonLevel() const
 {
     int biggestLevel = 0;
@@ -228,6 +242,7 @@ int BoardManager::getBiggestPigeonTier() const
     return biggestTier;
 }
 
+// cppcheck-suppress unusedFunction
 int BoardManager::getCoins() const
 {
     return coins;
@@ -235,11 +250,9 @@ int BoardManager::getCoins() const
 
 bool BoardManager::hasAnyActiveBerryEffect() const
 {
-    for (const Pigeon* pigeon : activePigeons)
-        if (pigeon != nullptr && pigeon->hasActiveBerryEffect())
-            return true;
-
-    return false;
+    return any_of(activePigeons.begin(), activePigeons.end(), [](const Pigeon* pigeon) {
+        return pigeon != nullptr && pigeon->hasActiveBerryEffect();
+    });
 }
 
 void BoardManager::printBoard()
@@ -323,27 +336,21 @@ void BoardManager::showEncyclopedia() const
 
 void BoardManager::showShop()
 {
-    shop.showCategories();
-    expectedInputName = "shop category";
-    cin >> *this;
-    const int category = lastInputCommand;
+    Shop::showCategories();
+    const int category = readIntInput("shop category");
     if (category == 1)
     {
         shop.showPigeonCategory(*this);
         if (shop.getAvailablePigeonOffers(*this).empty())
             return;
 
-        expectedInputName = "pigeon tier";
-        cin >> *this;
-        const int pigeonTier = lastInputCommand;
+        const int pigeonTier = readIntInput("pigeon tier");
         buyNewPigeon(pigeonTier);
     }
     else if (category == 2)
     {
         shop.showBerryCategory();
-        expectedInputName = "berry type";
-        cin >> *this;
-        const int berryType = lastInputCommand;
+        const int berryType = readIntInput("berry type");
         buyNewBerry(berryType);
     }
     else
@@ -356,12 +363,8 @@ void BoardManager::showFeedBerryMenu()
     printBerryInventory();
 
     cout << "Choose berry type and pigeon index: ";
-    expectedInputName = "berry type";
-    cin >> *this;
-    const int berryType = lastInputCommand;
-    expectedInputName = "pigeon index";
-    cin >> *this;
-    const int pigeonIndex = lastInputCommand;
+    const int berryType = readIntInput("berry type");
+    const int pigeonIndex = readIntInput("pigeon index");
     feedBerry(berryType, pigeonIndex);
 }
 

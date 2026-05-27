@@ -20,9 +20,9 @@ Shop::Shop()
     }
 
     berryOffers = {
-        {BerryType::Red, Berry::getNameByType(BerryType::Red), 1500},
-        {BerryType::Yellow, Berry::getNameByType(BerryType::Yellow), 1500},
-        {BerryType::Purple, Berry::getNameByType(BerryType::Purple), 1500}
+        {BerryType::Red, Berry::getNameByType(BerryType::Red), 100},
+        {BerryType::Yellow, Berry::getNameByType(BerryType::Yellow), 100},
+        {BerryType::Purple, Berry::getNameByType(BerryType::Purple), 100}
     };
 }
 
@@ -116,6 +116,7 @@ int Shop::getPigeonPrice(const int pigeonTier) const
     return offer->currentPrice;
 }
 
+// cppcheck-suppress unusedFunction
 int Shop::getPigeonTimesBought(const int pigeonTier) const
 {
     const PigeonOffer* offer = findPigeonOffer(pigeonTier);
@@ -136,7 +137,8 @@ bool Shop::recordPigeonPurchase(const int pigeonTier)
     return true;
 }
 
-vector<BerryOffer> Shop::getBerryOffers() const
+// cppcheck-suppress unusedFunction
+const vector<BerryOffer>& Shop::getBerryOffers() const
 {
     return berryOffers;
 }

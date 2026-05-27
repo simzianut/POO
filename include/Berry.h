@@ -21,7 +21,7 @@ public:
     virtual ~Berry() = default;
 
     [[nodiscard]] virtual string getName() const = 0;
-    [[nodiscard]] string getColor() const;
+    [[nodiscard]] const string& getColor() const;
     [[nodiscard]] BerryType getType() const;
 
     [[nodiscard]] static bool isValidType(BerryType type);
