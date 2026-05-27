@@ -1,23 +1,25 @@
 #include "BoardManager.h"
 #include "Crate.h"
 #include "GameException.h"
+#include <algorithm>
 #include <iostream>
 #include <string>
 
-namespace {
-int readIntCommand(const std::string& commandName)
+istream& operator>>(istream& in, BoardManager& board)
 {
-    std::string token;
-    if (!(std::cin >> token))
+    const string commandName = board.expectedInputName.empty() ? "command" : board.expectedInputName;
+
+    string token;
+    if (!(in >> token))
         throw InvalidCommandException(commandName);
 
     size_t parsedCharacters = 0;
     int value = 0;
     try
     {
-        value = std::stoi(token, &parsedCharacters);
+        value = stoi(token, &parsedCharacters);
     }
-    catch (const std::exception&)
+    catch (const exception&)
     {
         throw InvalidCommandException(token);
     }
@@ -25,15 +27,17 @@ int readIntCommand(const std::string& commandName)
     if (parsedCharacters != token.size())
         throw InvalidCommandException(token);
 
-    return value;
-}
+    board.lastInputCommand = value;
+    board.expectedInputName.clear();
+    return in;
 }
 
 
 BoardManager::BoardManager() :
-    berryInventory(4, 0),
+    berryInventory{},
     coins(0),
-    berryEffectDurationSeconds(15) {}
+    berryEffectDurationSeconds(15),
+    lastInputCommand(0) {}
 
 BoardManager::~BoardManager()
 {
@@ -62,10 +66,31 @@ int BoardManager::getBerryInventoryCount(BerryType berryType) const
     return berryInventory[index];
 }
 
+bool BoardManager::hasDiscoveredLargestPigeon() const
+{
+    for (const Pigeon* pigeon : activePigeons)
+        if (dynamic_cast<const Pigeostrich*>(pigeon) != nullptr)
+            return true;
+
+    return false;
+}
+
+void BoardManager::sortPigeonsByTier()
+{
+    stable_sort(activePigeons.begin(), activePigeons.end(), [](const Pigeon* left, const Pigeon* right) {
+        if (left == nullptr)
+            return false;
+        if (right == nullptr)
+            return true;
+        if (left->getTier() == right->getTier())
+            return left->getName() < right->getName();
+        return left->getTier() < right->getTier();
+    });
+}
+
 void BoardManager::openCrate()
 {
-    const Crate crate;
-    addPigeon(crate.open());
+    addPigeon(Crate::open(getBiggestPigeonTier()));
 }
 
 void BoardManager::addPigeon(Pigeon* pigeon)
@@ -73,7 +98,7 @@ void BoardManager::addPigeon(Pigeon* pigeon)
     if (pigeon == nullptr)
         return;
     activePigeons.push_back(pigeon);
-    update();// update ency
+    update();
 }
 
 void BoardManager::spawnBabyPigeon(const int count)
@@ -121,7 +146,7 @@ void BoardManager::performMerge(const int index1, const int index2)
 
         if (berryPigeon != nullptr && berryPigeon->hasActiveBerryEffect(BerryType::Yellow))
         {
-            int earned = static_cast<int>(5.0f * berryPigeon->getPoopPerSecond());
+            int earned = static_cast<int>(5000.0f * berryPigeon->getPoopPerSecond());
             coins += earned;
             cout << "Yellow Berry bonus: +" << earned << " coins.\n";
         }
@@ -135,7 +160,7 @@ void BoardManager::performMerge(const int index1, const int index2)
 
         activePigeons.push_back(newPigeon);
 
-        update(); // enc
+        update();
     }
     else
         cout << "Merge failed. Those pigeons cannot be combined.\n";
@@ -217,8 +242,9 @@ bool BoardManager::hasAnyActiveBerryEffect() const
     return false;
 }
 
-void BoardManager::printBoard() const
+void BoardManager::printBoard()
 {
+    sortPigeonsByTier();
     cout << "         CURRENT NEST\n";
     for (size_t i = 0; i < activePigeons.size(); ++i)
     {
@@ -233,6 +259,8 @@ void BoardManager::printBoard() const
     }
     cout << "Pigeons on board: " << getTotalPigeonsAlive() << "\n";
     cout << "Coins: " << coins << "\n\n";
+    if (hasDiscoveredLargestPigeon())
+        cout << "Largest pigeon discovered: Pigeostrich\n\n";
 }
 
 void BoardManager::printBerryInventory() const
@@ -296,20 +324,26 @@ void BoardManager::showEncyclopedia() const
 void BoardManager::showShop()
 {
     shop.showCategories();
-    const int category = readIntCommand("shop category");
+    expectedInputName = "shop category";
+    cin >> *this;
+    const int category = lastInputCommand;
     if (category == 1)
     {
         shop.showPigeonCategory(*this);
         if (shop.getAvailablePigeonOffers(*this).empty())
             return;
 
-        const int pigeonTier = readIntCommand("pigeon tier");
+        expectedInputName = "pigeon tier";
+        cin >> *this;
+        const int pigeonTier = lastInputCommand;
         buyNewPigeon(pigeonTier);
     }
     else if (category == 2)
     {
         shop.showBerryCategory();
-        const int berryType = readIntCommand("berry type");
+        expectedInputName = "berry type";
+        cin >> *this;
+        const int berryType = lastInputCommand;
         buyNewBerry(berryType);
     }
     else
@@ -322,8 +356,12 @@ void BoardManager::showFeedBerryMenu()
     printBerryInventory();
 
     cout << "Choose berry type and pigeon index: ";
-    const int berryType = readIntCommand("berry type");
-    const int pigeonIndex = readIntCommand("pigeon index");
+    expectedInputName = "berry type";
+    cin >> *this;
+    const int berryType = lastInputCommand;
+    expectedInputName = "pigeon index";
+    cin >> *this;
+    const int pigeonIndex = lastInputCommand;
     feedBerry(berryType, pigeonIndex);
 }
 
@@ -397,6 +435,12 @@ void BoardManager::feedBerry(const int desiredBerryType, const int pigeonIndex)
         throw BerryAlreadyInUseException();
 
     Pigeon* pigeon = activePigeons[pigeonIndex];
+    if (berryType == BerryType::Purple && dynamic_cast<const Pigeostrich*>(pigeon) != nullptr)
+    {
+        cout << "Pigeostrich is already the largest pigeon.\n";
+        return;
+    }
+
     pigeon->applyBerryEffect(berryType, berryEffectDurationSeconds);
     berryInventory[static_cast<int>(berryType)]--;
 

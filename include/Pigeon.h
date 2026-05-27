@@ -21,20 +21,15 @@ protected:
     BerryType activeBerryType;
     std::chrono::steady_clock::time_point berryEffectExpiration;
 
-    void addPoopsUntil(
-        vector<Poop*>& poops,
-        std::chrono::steady_clock::time_point endTime,
-        std::chrono::steady_clock::duration interval
-    );
+    void addPoopsUntil( vector<Poop*>& poops,
+        std::chrono::steady_clock::time_point endTime, std::chrono::steady_clock::duration interval);
     [[nodiscard]] virtual bool hasNextEvolution() const;
     [[nodiscard]] virtual Pigeon* createNextEvolution() const = 0;
 
 public:
-    friend bool operator==(const Pigeon& lhs, const Pigeon& rhs);
+    friend bool operator==(const Pigeon& leftHandSide, const Pigeon& rightHandSide);
 
-    // Constructor for pigeons available in the shop (tiers 1-13).
     Pigeon(int tier, int level, float weakChance, float strongChance, float pps, int basePrice);
-    // Constructor for pigeons NOT available in the shop (tiers 14-16).
     Pigeon(int tier, int level, float weakChance, float strongChance, float pps);
     Pigeon(const Pigeon& other);
     Pigeon& operator=(const Pigeon& other);
@@ -71,164 +66,288 @@ public:
 };
 
 
-class BabyPigeon : public Pigeon
-{
-    string description;
-public:
-    BabyPigeon();
 
-    [[nodiscard]] string getName() const override;
-    [[nodiscard]] string getDescription() const override;
-    [[nodiscard]] Pigeon* createNextEvolution() const override;
+template <typename Traits>
+class ShopPigeon final : public Pigeon {
+protected:
+    [[nodiscard]] Pigeon* createNextEvolution() const override
+    {
+        return Pigeon::createByTier(Traits::tier + 1);
+    }
+
+public:
+    ShopPigeon() :
+        Pigeon(
+            Traits::tier,
+            Traits::level,
+            Traits::weakPoopChance,
+            Traits::strongPoopChance,
+            Traits::poopPerSecond,
+            Traits::basePrice
+        ) {}
+
+    ShopPigeon(const ShopPigeon& other) : Pigeon(other) {}
+
+    ShopPigeon& operator=(const ShopPigeon& other)
+    {
+        Pigeon::operator=(other);
+        return *this;
+    }
+
+    ~ShopPigeon() override = default;
+
+    [[nodiscard]] string getName() const override
+    {
+        return Traits::name;
+    }
+
+    [[nodiscard]] string getDescription() const override
+    {
+        return Traits::description;
+    }
 };
 
 
-class NormalPigeon : public Pigeon
-{
-    string description;
-public:
-    NormalPigeon();
+template <typename Traits>
+class FinalTierPigeon final : public Pigeon {
+protected:
+    [[nodiscard]] bool hasNextEvolution() const override
+    {
+        return Traits::tier < 16;
+    }
 
-    [[nodiscard]] string getName() const override;
-    [[nodiscard]] string getDescription() const override;
-    [[nodiscard]] Pigeon* createNextEvolution() const override;
+    [[nodiscard]] Pigeon* createNextEvolution() const override
+    {
+        if (!hasNextEvolution())
+            return nullptr;
+        return Pigeon::createByTier(Traits::tier + 1);
+    }
+
+public:
+    FinalTierPigeon() :
+        Pigeon(
+            Traits::tier,
+            Traits::level,
+            Traits::weakPoopChance,
+            Traits::strongPoopChance,
+            Traits::poopPerSecond
+        ) {}
+
+    FinalTierPigeon(const FinalTierPigeon& other) : Pigeon(other) {}
+
+    FinalTierPigeon& operator=(const FinalTierPigeon& other)
+    {
+        Pigeon::operator=(other);
+        return *this;
+    }
+
+    ~FinalTierPigeon() override = default;
+
+    [[nodiscard]] string getName() const override
+    {
+        return Traits::name;
+    }
+
+    [[nodiscard]] string getDescription() const override
+    {
+        return Traits::description;
+    }
+
+    [[nodiscard]] bool isAvailableInShop() const override
+    {
+        return false;
+    }
 };
 
-
-class ChunkyPigeon : public Pigeon {
-    string description;
-public:
-    ChunkyPigeon();
-    [[nodiscard]] string getName() const override;
-    [[nodiscard]] string getDescription() const override;
-    [[nodiscard]] Pigeon* createNextEvolution() const override;
+struct BabyPigeonTraits {
+    static constexpr int tier = 1;
+    static constexpr int level = 1;
+    static constexpr float weakPoopChance = 0.0f;
+    static constexpr float strongPoopChance = 1.0f;
+    static constexpr float poopPerSecond = 1.0f;
+    static constexpr int basePrice = 15;
+    static constexpr const char* name = "Baby Pigeon";
+    static constexpr const char* description = "Cute baby";
 };
 
-
-class FatPigeon : public Pigeon {
-    string description;
-public:
-    FatPigeon();
-    [[nodiscard]] string getName() const override;
-    [[nodiscard]] string getDescription() const override;
-    [[nodiscard]] Pigeon* createNextEvolution() const override;
+struct NormalPigeonTraits {
+    static constexpr int tier = 2;
+    static constexpr int level = 2;
+    static constexpr float weakPoopChance = 0.85f;
+    static constexpr float strongPoopChance = 0.15f;
+    static constexpr float poopPerSecond = 2.3f;
+    static constexpr int basePrice = 40;
+    static constexpr const char* name = "Normal Pigeon";
+    static constexpr const char* description = "Your normal street pigeon";
 };
 
-
-class ObesePigeon : public Pigeon {
-    string description;
-public:
-    ObesePigeon();
-    [[nodiscard]] string getName() const override;
-    [[nodiscard]] string getDescription() const override;
-    [[nodiscard]] Pigeon* createNextEvolution() const override;
+struct ChunkyPigeonTraits {
+    static constexpr int tier = 3;
+    static constexpr int level = 2;
+    static constexpr float weakPoopChance = 0.60f;
+    static constexpr float strongPoopChance = 0.40f;
+    static constexpr float poopPerSecond = 4.6f;
+    static constexpr int basePrice = 150;
+    static constexpr const char* name = "Chunky Pigeon";
+    static constexpr const char* description = "Ate too many peanuts";
 };
 
-
-class MutantPigeon : public Pigeon {
-    string description;
-public:
-    MutantPigeon();
-    [[nodiscard]] string getName() const override;
-    [[nodiscard]] string getDescription() const override;
-    [[nodiscard]] Pigeon* createNextEvolution() const override;
+struct FatPigeonTraits {
+    static constexpr int tier = 4;
+    static constexpr int level = 2;
+    static constexpr float weakPoopChance = 0.05f;
+    static constexpr float strongPoopChance = 0.95f;
+    static constexpr float poopPerSecond = 9.5f;
+    static constexpr int basePrice = 425;
+    static constexpr const char* name = "Fat Pigeon";
+    static constexpr const char* description = "He just loves ice cream";
 };
 
-class PigeonWorm : public Pigeon {
-    string description;
-public:
-    PigeonWorm();
-    [[nodiscard]] string getName() const override;
-    [[nodiscard]] string getDescription() const override;
-    [[nodiscard]] Pigeon* createNextEvolution() const override;
+struct ObesePigeonTraits {
+    static constexpr int tier = 5;
+    static constexpr int level = 3;
+    static constexpr float weakPoopChance = 0.90f;
+    static constexpr float strongPoopChance = 0.10f;
+    static constexpr float poopPerSecond = 19.0f;
+    static constexpr int basePrice = 1000;
+    static constexpr const char* name = "Obese Pigeon";
+    static constexpr const char* description = "Can barely walk, might need a doctor";
 };
 
-class Spingeon : public Pigeon {
-    string description;
-public:
-    Spingeon();
-    [[nodiscard]] string getName() const override;
-    [[nodiscard]] string getDescription() const override;
-    [[nodiscard]] Pigeon* createNextEvolution() const override;
+struct MutantPigeonTraits {
+    static constexpr int tier = 6;
+    static constexpr int level = 3;
+    static constexpr float weakPoopChance = 0.65f;
+    static constexpr float strongPoopChance = 0.35f;
+    static constexpr float poopPerSecond = 41.5f;
+    static constexpr int basePrice = 2500;
+    static constexpr const char* name = "Mutant Pigeon";
+    static constexpr const char* description = "Something went very wrong at the lab";
 };
 
-class Cheerlegeon : public Pigeon {
-    string description;
-public:
-    Cheerlegeon();
-    [[nodiscard]] string getName() const override;
-    [[nodiscard]] string getDescription() const override;
-    [[nodiscard]] Pigeon* createNextEvolution() const override;
+struct PigeonWormTraits {
+    static constexpr int tier = 7;
+    static constexpr int level = 3;
+    static constexpr float weakPoopChance = 0.15f;
+    static constexpr float strongPoopChance = 0.85f;
+    static constexpr float poopPerSecond = 86.5f;
+    static constexpr int basePrice = 3500;
+    static constexpr const char* name = "Pigeonworm";
+    static constexpr const char* description = "A pigeon that discovered worm mode";
 };
 
-class Chickenigeon : public Pigeon {
-    string description;
-public:
-    Chickenigeon();
-    [[nodiscard]] string getName() const override;
-    [[nodiscard]] string getDescription() const override;
-    [[nodiscard]] Pigeon* createNextEvolution() const override;
+struct SpingeonTraits {
+    static constexpr int tier = 8;
+    static constexpr int level = 4;
+    static constexpr float weakPoopChance = 0.90f;
+    static constexpr float strongPoopChance = 0.10f;
+    static constexpr float poopPerSecond = 190.0f;
+    static constexpr int basePrice = 5000;
+    static constexpr const char* name = "Spingeon";
+    static constexpr const char* description = "A spring-loaded pigeon with strange bounce";
 };
 
-class Twingeon : public Pigeon {
-    string description;
-public:
-    Twingeon();
-    [[nodiscard]] string getName() const override;
-    [[nodiscard]] string getDescription() const override;
-    [[nodiscard]] Pigeon* createNextEvolution() const override;
+struct CheerlegeonTraits {
+    static constexpr int tier = 9;
+    static constexpr int level = 4;
+    static constexpr float weakPoopChance = 0.65f;
+    static constexpr float strongPoopChance = 0.35f;
+    static constexpr float poopPerSecond = 415.0f;
+    static constexpr int basePrice = 6900;
+    static constexpr const char* name = "Cheerlegeon";
+    static constexpr const char* description = "Too enthusiastic for the nest";
 };
 
-class Pidgeknowledge : public Pigeon {
-    string description;
-public:
-    Pidgeknowledge();
-    [[nodiscard]] string getName() const override;
-    [[nodiscard]] string getDescription() const override;
-    [[nodiscard]] Pigeon* createNextEvolution() const override;
+struct ChickenigeonTraits {
+    static constexpr int tier = 10;
+    static constexpr int level = 4;
+    static constexpr float weakPoopChance = 0.15f;
+    static constexpr float strongPoopChance = 0.85f;
+    static constexpr float poopPerSecond = 865.0f;
+    static constexpr int basePrice = 9500;
+    static constexpr const char* name = "Chickenigeon";
+    static constexpr const char* description = "Somewhere between cluck and coo";
 };
 
-class Pidgeeyes : public Pigeon {
-    string description;
-public:
-    Pidgeeyes();
-    [[nodiscard]] string getName() const override;
-    [[nodiscard]] string getDescription() const override;
-    [[nodiscard]] Pigeon* createNextEvolution() const override;
+struct TwingeonTraits {
+    static constexpr int tier = 11;
+    static constexpr int level = 5;
+    static constexpr float weakPoopChance = 0.90f;
+    static constexpr float strongPoopChance = 0.10f;
+    static constexpr float poopPerSecond = 1900.0f;
+    static constexpr int basePrice = 13500;
+    static constexpr const char* name = "Twingeon";
+    static constexpr const char* description = "A suspiciously doubled pigeon";
 };
 
-// ── Final-tier pigeons: never sold in the shop ─────────────────────────────
-// These use the no-price constructor overload and override isAvailableInShop()
-// to return false, making their shop-exclusion explicit and polymorphic.
-
-class Capturegeon : public Pigeon {
-    string description;
-public:
-    Capturegeon();
-    [[nodiscard]] string getName() const override;
-    [[nodiscard]] string getDescription() const override;
-    [[nodiscard]] Pigeon* createNextEvolution() const override;
-    [[nodiscard]] bool isAvailableInShop() const override;
+struct PidgeknowledgeTraits {
+    static constexpr int tier = 12;
+    static constexpr int level = 5;
+    static constexpr float weakPoopChance = 0.65f;
+    static constexpr float strongPoopChance = 0.35f;
+    static constexpr float poopPerSecond = 4150.0f;
+    static constexpr int basePrice = 18000;
+    static constexpr const char* name = "Pidgeknowledge";
+    static constexpr const char* description = "Knows more than it should";
 };
 
-class Bellybird : public Pigeon {
-    string description;
-public:
-    Bellybird();
-    [[nodiscard]] string getName() const override;
-    [[nodiscard]] string getDescription() const override;
-    [[nodiscard]] Pigeon* createNextEvolution() const override;
-    [[nodiscard]] bool isAvailableInShop() const override;
+struct PidgeeyesTraits {
+    static constexpr int tier = 13;
+    static constexpr int level = 5;
+    static constexpr float weakPoopChance = 0.15f;
+    static constexpr float strongPoopChance = 0.85f;
+    static constexpr float poopPerSecond = 8650.0f;
+    static constexpr int basePrice = 26000;
+    static constexpr const char* name = "Pidgeyes";
+    static constexpr const char* description = "Always watching the next merge";
 };
 
-class Pigeostrich : public Pigeon {
-    string description;
-public:
-    Pigeostrich();
-    [[nodiscard]] string getName() const override;
-    [[nodiscard]] string getDescription() const override;
-    [[nodiscard]] bool hasNextEvolution() const override;
-    [[nodiscard]] Pigeon* createNextEvolution() const override;
-    [[nodiscard]] bool isAvailableInShop() const override;
+struct CapturegeonTraits {
+    static constexpr int tier = 14;
+    static constexpr int level = 6;
+    static constexpr float weakPoopChance = 0.90f;
+    static constexpr float strongPoopChance = 0.10f;
+    static constexpr float poopPerSecond = 19000.0f;
+    static constexpr const char* name = "Capturegeon";
+    static constexpr const char* description = "A pigeon with collector instincts";
 };
+
+struct BellybirdTraits {
+    static constexpr int tier = 15;
+    static constexpr int level = 6;
+    static constexpr float weakPoopChance = 0.65f;
+    static constexpr float strongPoopChance = 0.35f;
+    static constexpr float poopPerSecond = 41500.0f;
+    static constexpr const char* name = "Bellybird";
+    static constexpr const char* description = "Mostly belly, technically bird";
+};
+
+struct PigeostrichTraits {
+    static constexpr int tier = 16;
+    static constexpr int level = 6;
+    static constexpr float weakPoopChance = 0.15f;
+    static constexpr float strongPoopChance = 0.85f;
+    static constexpr float poopPerSecond = 86500.0f;
+    static constexpr const char* name = "Pigeostrich";
+    static constexpr const char* description = "The tallest possible pigeon mistake";
+};
+
+using BabyPigeon = ShopPigeon<BabyPigeonTraits>;
+using NormalPigeon = ShopPigeon<NormalPigeonTraits>;
+using ChunkyPigeon = ShopPigeon<ChunkyPigeonTraits>;
+using FatPigeon = ShopPigeon<FatPigeonTraits>;
+using ObesePigeon = ShopPigeon<ObesePigeonTraits>;
+using MutantPigeon = ShopPigeon<MutantPigeonTraits>;
+using PigeonWorm = ShopPigeon<PigeonWormTraits>;
+using Spingeon = ShopPigeon<SpingeonTraits>;
+using Cheerlegeon = ShopPigeon<CheerlegeonTraits>;
+using Chickenigeon = ShopPigeon<ChickenigeonTraits>;
+using Twingeon = ShopPigeon<TwingeonTraits>;
+using Pidgeknowledge = ShopPigeon<PidgeknowledgeTraits>;
+using Pidgeeyes = ShopPigeon<PidgeeyesTraits>;
+
+using Capturegeon = FinalTierPigeon<CapturegeonTraits>;
+using Bellybird = FinalTierPigeon<BellybirdTraits>;
+using Pigeostrich = FinalTierPigeon<PigeostrichTraits>;
+
 #endif

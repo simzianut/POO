@@ -10,20 +10,19 @@ Shop::Shop()
 {
     for (int tier = 1; ; ++tier)
     {
-        Pigeon* prototype = Pigeon::createByTier(tier);
+        const Pigeon* prototype = Pigeon::createByTier(tier);
         if (prototype == nullptr)
             break;
         if (prototype->isAvailableInShop())
             pigeonOffers.push_back({tier,prototype->getName(),prototype->getBasePrice(),0});
 
-
         delete prototype;
     }
 
     berryOffers = {
-        {BerryType::Red, Berry::getNameByType(BerryType::Red), 100},
-        {BerryType::Yellow, Berry::getNameByType(BerryType::Yellow), 100},
-        {BerryType::Purple, Berry::getNameByType(BerryType::Purple), 100}
+        {BerryType::Red, Berry::getNameByType(BerryType::Red), 1500},
+        {BerryType::Yellow, Berry::getNameByType(BerryType::Yellow), 1500},
+        {BerryType::Purple, Berry::getNameByType(BerryType::Purple), 1500}
     };
 }
 

@@ -8,17 +8,14 @@ BerryType Berry::getType() const { return type; }
 
 bool Berry::isValidType(const BerryType type)
 {
-    return type == BerryType::Red ||
-           type == BerryType::Yellow ||
-           type == BerryType::Purple;
+    return type == BerryType::Red || type == BerryType::Yellow || type == BerryType::Purple;
 }
 
 BerryType Berry::typeFromInt(int value)
 {
-    BerryType type = static_cast<BerryType>(value);
+    const auto type = static_cast<BerryType>(value);
     if (!isValidType(type))
         return BerryType::None;
-
     return type;
 }
 

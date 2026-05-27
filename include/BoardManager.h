@@ -1,6 +1,9 @@
 #ifndef BOARDMANAGER_H
 #define BOARDMANAGER_H
 
+#include <array>
+#include <iosfwd>
+#include <string>
 #include <vector>
 #include "Pigeon.h"
 #include "Encyclopedia.h"
@@ -11,30 +14,35 @@ using namespace std;
 class BoardManager {
 private:
     vector<Pigeon*> activePigeons;
-    vector<int> berryInventory;
+    array<int, 4> berryInventory;
     Encyclopedia encyclopedia;
     Shop shop;
     int coins;
     int berryEffectDurationSeconds;
+    int lastInputCommand;
+    string expectedInputName;
 
     [[nodiscard]] bool isValidPigeonIndex(int index) const;
     [[nodiscard]] int getBerryInventoryCount(BerryType berryType) const;
+    [[nodiscard]] bool hasDiscoveredLargestPigeon() const;
+    void sortPigeonsByTier();
 
     BoardManager();
 
 
 public:
+    friend istream& operator>>(istream& in, BoardManager& board);
 
     ~BoardManager();
     static BoardManager& getInstance();
 
     BoardManager(const BoardManager&) = delete;
-    BoardManager &operator=(const BoardManager) = delete;
+    BoardManager &operator=(BoardManager) = delete;
 
     void openCrate();
     void addPigeon(Pigeon* pigeon);
-    void spawnBabyPigeon(int count=1); // test
-    void spawnMutantPigeon();          //test
+    void spawnBabyPigeon(int count=1);
+    void spawnMutantPigeon();
     void performMerge(int index1, int index2);
     void performMerge(int index);
     [[nodiscard]] int getTotalPigeonsAlive() const;
@@ -42,7 +50,7 @@ public:
     [[nodiscard]] int getBiggestPigeonTier() const;
     [[nodiscard]] int getCoins() const;
     [[nodiscard]] bool hasAnyActiveBerryEffect() const;
-    void printBoard() const;
+    void printBoard();
     void printBerryInventory() const;
 
     void update();

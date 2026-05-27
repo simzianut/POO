@@ -4,8 +4,14 @@
 #include "Pigeon.h"
 
 class Crate {
+private:
+    static constexpr int normalPigeonDropChancePercent = 20;
+
+    [[nodiscard]] static bool canDropNormalPigeon(int biggestPigeonTierOnBoard);
+    [[nodiscard]] static int choosePigeonTier(int biggestPigeonTierOnBoard);
+
 public:
-    static Pigeon* open();
+    [[nodiscard]] static Pigeon* open(int biggestPigeonTierOnBoard);
 };
 
 #endif

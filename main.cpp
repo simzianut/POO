@@ -61,7 +61,6 @@ int main()
         }
         catch (const GameException& exception)
         {
-            // Upcasting proof: derived game exceptions are handled through the base class reference.
             cout << exception.what() << "\n";
             cin.clear();
         }

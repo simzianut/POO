@@ -1,7 +1,6 @@
 #include "Pigeon.h"
 #include "Poop.h"
 #include <chrono>
-#include <cstdlib>
 #include <vector>
 using namespace std;
 
@@ -43,13 +42,17 @@ Pigeon& Pigeon::operator=(const Pigeon& other)
 
 Pigeon::~Pigeon() = default;
 
-bool operator==(const Pigeon& lhs, const Pigeon& rhs)
+bool operator==(const Pigeon& leftHandSide, const Pigeon& rightHandSide)
 {
-    return lhs.tier == rhs.tier && lhs.hasNextEvolution() && rhs.hasNextEvolution();
+    return leftHandSide.tier == rightHandSide.tier && leftHandSide.hasNextEvolution() && rightHandSide.hasNextEvolution();
 }
 
 bool Pigeon::canMergeWith(const Pigeon& other) const
 {
+    if (dynamic_cast<const Pigeostrich*>(this) != nullptr ||
+        dynamic_cast<const Pigeostrich*>(&other) != nullptr)
+        return false;
+
     return *this == other;
 }
 
@@ -291,119 +294,3 @@ int Pigeon::getRemainingBerrySeconds() const
     return static_cast<int>(std::chrono::duration_cast<std::chrono::seconds>(
         berryEffectExpiration - now).count());
 }
-
-
-BabyPigeon::BabyPigeon() : Pigeon(1, 1, 0.0f, 1.0f, 1.0f, 15),
-    description("Cute baby") {}
-string BabyPigeon::getName() const { return "Baby Pigeon"; }
-string BabyPigeon::getDescription() const { return description; }
-Pigeon* BabyPigeon::createNextEvolution() const { return new NormalPigeon(); }
-
-
-NormalPigeon::NormalPigeon() : Pigeon(2, 2, 0.85f, 0.15f, 2.3f, 40),
-    description("Your normal street pigeon") {}
-string NormalPigeon::getName() const { return "Normal Pigeon"; }
-string NormalPigeon::getDescription() const { return description; }
-Pigeon* NormalPigeon::createNextEvolution() const { return new ChunkyPigeon(); }
-
-
-ChunkyPigeon::ChunkyPigeon() : Pigeon(3, 2, 0.60f, 0.40f, 4.6f, 150),
-    description("Ate too many peanuts") {}
-string ChunkyPigeon::getName() const { return "Chunky Pigeon"; }
-string ChunkyPigeon::getDescription() const { return description; }
-Pigeon* ChunkyPigeon::createNextEvolution() const { return new FatPigeon(); }
-
-
-FatPigeon::FatPigeon() : Pigeon(4, 2, 0.05f, 0.95f, 9.5f, 425),
-    description("He just loves ice cream") {}
-string FatPigeon::getName() const { return "Fat Pigeon"; }
-string FatPigeon::getDescription() const { return description; }
-Pigeon* FatPigeon::createNextEvolution() const { return new ObesePigeon(); }
-
-
-ObesePigeon::ObesePigeon() : Pigeon(5, 3, 0.90f, 0.10f, 19.0f, 1000),
-    description("Can barely walk, might need a doctor") {}
-string ObesePigeon::getName() const { return "Obese Pigeon"; }
-string ObesePigeon::getDescription() const { return description; }
-Pigeon* ObesePigeon::createNextEvolution() const { return new MutantPigeon(); }
-
-
-MutantPigeon::MutantPigeon() : Pigeon(6, 3, 0.65f, 0.35f, 41.5f, 2500),
-    description("Something went very wrong at the lab") {}
-string MutantPigeon::getName() const { return "Mutant Pigeon"; }
-string MutantPigeon::getDescription() const { return description; }
-Pigeon* MutantPigeon::createNextEvolution() const { return new PigeonWorm(); }
-
-
-PigeonWorm::PigeonWorm() : Pigeon(7, 3, 0.15f, 0.85f, 86.5f, 3500),
-    description("A pigeon that discovered worm mode") {}
-string PigeonWorm::getName() const { return "Pigeonworm"; }
-string PigeonWorm::getDescription() const { return description; }
-Pigeon* PigeonWorm::createNextEvolution() const { return new Spingeon(); }
-
-
-Spingeon::Spingeon() : Pigeon(8, 4, 0.90f, 0.10f, 190.0f, 5000),
-    description("A spring-loaded pigeon with strange bounce") {}
-string Spingeon::getName() const { return "Spingeon"; }
-string Spingeon::getDescription() const { return description; }
-Pigeon* Spingeon::createNextEvolution() const { return new Cheerlegeon(); }
-
-
-Cheerlegeon::Cheerlegeon() : Pigeon(9, 4, 0.65f, 0.35f, 415.0f, 6900),
-    description("Too enthusiastic for the nest") {}
-string Cheerlegeon::getName() const { return "Cheerlegeon"; }
-string Cheerlegeon::getDescription() const { return description; }
-Pigeon* Cheerlegeon::createNextEvolution() const { return new Chickenigeon(); }
-
-
-Chickenigeon::Chickenigeon() : Pigeon(10, 4, 0.15f, 0.85f, 865.0f, 9500),
-    description("Somewhere between cluck and coo") {}
-string Chickenigeon::getName() const { return "Chickenigeon"; }
-string Chickenigeon::getDescription() const { return description; }
-Pigeon* Chickenigeon::createNextEvolution() const { return new Twingeon(); }
-
-
-Twingeon::Twingeon() : Pigeon(11, 5, 0.90f, 0.10f, 1900.0f, 13500),
-    description("A suspiciously doubled pigeon") {}
-string Twingeon::getName() const { return "Twingeon"; }
-string Twingeon::getDescription() const { return description; }
-Pigeon* Twingeon::createNextEvolution() const { return new Pidgeknowledge(); }
-
-
-Pidgeknowledge::Pidgeknowledge() : Pigeon(12, 5, 0.65f, 0.35f, 4150.0f, 18000),
-    description("Knows more than it should") {}
-string Pidgeknowledge::getName() const { return "Pidgeknowledge"; }
-string Pidgeknowledge::getDescription() const { return description; }
-Pigeon* Pidgeknowledge::createNextEvolution() const { return new Pidgeeyes(); }
-
-
-Pidgeeyes::Pidgeeyes() : Pigeon(13, 5, 0.15f, 0.85f, 8650.0f, 26000),
-    description("Always watching the next merge") {}
-string Pidgeeyes::getName() const { return "Pidgeyes"; }
-string Pidgeeyes::getDescription() const { return description; }
-Pigeon* Pidgeeyes::createNextEvolution() const { return new Capturegeon(); }
-
-
-
-
-Capturegeon::Capturegeon() : Pigeon(14, 6, 0.90f, 0.10f, 19000.0f),
-    description("A pigeon with collector instincts") {}
-string Capturegeon::getName()        const { return "Capturegeon"; }
-string Capturegeon::getDescription() const { return description; }
-Pigeon* Capturegeon::createNextEvolution() const { return new Bellybird(); }
-bool Capturegeon::isAvailableInShop() const { return false; }
-
-Bellybird::Bellybird() : Pigeon(15, 6, 0.65f, 0.35f, 41500.0f),
-    description("Mostly belly, technically bird") {}
-string Bellybird::getName()        const { return "Bellybird"; }
-string Bellybird::getDescription() const { return description; }
-Pigeon* Bellybird::createNextEvolution() const { return new Pigeostrich(); }
-bool Bellybird::isAvailableInShop() const { return false; }
-
-Pigeostrich::Pigeostrich() : Pigeon(16, 6, 0.15f, 0.85f, 86500.0f),
-    description("The tallest possible pigeon mistake") {}
-string Pigeostrich::getName()        const { return "Pigeostrich"; }
-string Pigeostrich::getDescription() const { return description; }
-Pigeon* Pigeostrich::createNextEvolution() const { return nullptr; }
-bool Pigeostrich::hasNextEvolution() const { return false; }
-bool Pigeostrich::isAvailableInShop() const { return false; }
