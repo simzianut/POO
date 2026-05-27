@@ -19,7 +19,6 @@ public:
     [[nodiscard]] static Poop* createByLevel(int level);
 
     [[nodiscard]] int getLevel() const;
-    [[nodiscard]] int getValue() const;
 };
 
 

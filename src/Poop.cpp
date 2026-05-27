@@ -24,7 +24,6 @@ Poop* Poop::createByLevel(const int level) {
 }
 
 int Poop::getLevel() const { return level; }
-int Poop::getValue() const { return value; }
 
 
 ClassicPoop::ClassicPoop() : Poop(1, 1) {}
