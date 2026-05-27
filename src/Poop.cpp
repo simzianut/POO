@@ -24,7 +24,6 @@ Poop* Poop::createByLevel(const int level) {
 }
 
 int Poop::getLevel() const { return level; }
-// cppcheck-suppress unusedFunction
 int Poop::getValue() const { return value; }
 
 

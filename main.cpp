@@ -1,7 +1,9 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <cstdlib>
 #include <ctime>
+#include <limits>
 #include <string>
 
 #include "BoardManager.h"
@@ -24,13 +26,23 @@ int main()
     cout << "6 - Feed berry\n";
     cout << "Type exit - Quit\n\n";
 
-    while (1)
+    while (true)
     {
         try
         {
             board.update();
             string command;
-            cin >> command;
+            if (!(cin >> command))
+            {
+                if (cin.eof())
+                {
+                    cout << "Goodbye!\n";
+                    return 0;
+                }
+                cin.clear();
+                cout << "Invalid command: command. Type exit to quit.\n";
+                continue;
+            }
 
             if (command == "exit")
             {
@@ -45,7 +57,17 @@ int main()
                 board.printBoard();
                 int index1, index2;
                 if (!(cin >> index1 >> index2))
-                    throw InvalidCommandException("merge indices");
+                {
+                    if (cin.eof())
+                    {
+                        cout << "Goodbye!\n";
+                        return 0;
+                    }
+                    cin.clear();
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    cout << "Invalid command: merge indices. Type exit to quit.\n";
+                    continue;
+                }
                 board.performMerge(index1, index2);
             }
             else if (command == "3")
@@ -57,16 +79,26 @@ int main()
             else if (command == "6")
                 board.showFeedBerryMenu();
             else
-                throw InvalidCommandException(command);
+                cout << "Invalid command: " << command << ". Type exit to quit.\n";
         }
         catch (const GameException& exception)
         {
             cout << exception.what() << "\n";
+            if (cin.eof())
+            {
+                cout << "Goodbye!\n";
+                return 0;
+            }
             cin.clear();
         }
         catch (const exception& exception)
         {
             cout << exception.what() << "\n";
+            if (cin.eof())
+            {
+                cout << "Goodbye!\n";
+                return 0;
+            }
             cin.clear();
         }
     }

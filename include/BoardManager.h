@@ -25,7 +25,7 @@ private:
     [[nodiscard]] bool isValidPigeonIndex(int index) const;
     [[nodiscard]] int getBerryInventoryCount(BerryType berryType) const;
     [[nodiscard]] bool hasDiscoveredLargestPigeon() const;
-    [[nodiscard]] int readIntInput(const string& inputName);
+    [[nodiscard]] bool readIntInput(const string& inputName, int& value);
     void sortPigeonsByTier();
 
     BoardManager();

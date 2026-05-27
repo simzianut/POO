@@ -2,8 +2,27 @@
 #include "Crate.h"
 #include "GameException.h"
 #include <algorithm>
+#include <cerrno>
+#include <climits>
+#include <cstdlib>
 #include <iostream>
 #include <string>
+
+namespace {
+bool parseIntegerToken(const string& token, int& value)
+{
+    char* end = nullptr;
+    errno = 0;
+    const long parsedValue = strtol(token.c_str(), &end, 10);
+
+    if (end != token.c_str() + token.size() || errno == ERANGE ||
+        parsedValue < INT_MIN || parsedValue > INT_MAX)
+        return false;
+
+    value = static_cast<int>(parsedValue);
+    return true;
+}
+}
 
 istream& operator>>(istream& in, BoardManager& board)
 {
@@ -16,18 +35,8 @@ istream& operator>>(istream& in, BoardManager& board)
         throw InvalidCommandException(commandName);
     }
 
-    size_t parsedCharacters = 0;
     int value = 0;
-    try
-    {
-        value = stoi(token, &parsedCharacters);
-    }
-    catch (const exception&)
-    {
-        throw InvalidCommandException(token);
-    }
-
-    if (parsedCharacters != token.size())
+    if (!parseIntegerToken(token, value))
         throw InvalidCommandException(token);
 
     board.lastInputCommand = value;
@@ -76,11 +85,27 @@ bool BoardManager::hasDiscoveredLargestPigeon() const
     });
 }
 
-int BoardManager::readIntInput(const string& inputName)
+bool BoardManager::readIntInput(const string& inputName, int& value)
 {
     expectedInputName = inputName;
-    cin >> *this;
-    return lastInputCommand;
+
+    string token;
+    if (!(cin >> token))
+    {
+        expectedInputName.clear();
+        return false;
+    }
+
+    expectedInputName.clear();
+
+    if (!parseIntegerToken(token, value))
+    {
+        cout << "Invalid command: " << token << ". Type exit to quit.\n";
+        return false;
+    }
+
+    lastInputCommand = value;
+    return true;
 }
 
 void BoardManager::sortPigeonsByTier()
@@ -125,7 +150,10 @@ void BoardManager::spawnMutantPigeon()
 void BoardManager::performMerge(const int index1, const int index2)
 {
     if (index1 == index2 || !isValidPigeonIndex(index1) || !isValidPigeonIndex(index2))
-        throw InvalidCommandException("merge indices");
+    {
+        cout << "Invalid command: merge indices. Type exit to quit.\n";
+        return;
+    }
 
     Pigeon* p1 = activePigeons[index1];
     Pigeon* p2 = activePigeons[index2];
@@ -337,24 +365,31 @@ void BoardManager::showEncyclopedia() const
 void BoardManager::showShop()
 {
     Shop::showCategories();
-    const int category = readIntInput("shop category");
+    int category = 0;
+    if (!readIntInput("shop category", category))
+        return;
+
     if (category == 1)
     {
         shop.showPigeonCategory(*this);
         if (shop.getAvailablePigeonOffers(*this).empty())
             return;
 
-        const int pigeonTier = readIntInput("pigeon tier");
+        int pigeonTier = 0;
+        if (!readIntInput("pigeon tier", pigeonTier))
+            return;
         buyNewPigeon(pigeonTier);
     }
     else if (category == 2)
     {
         shop.showBerryCategory();
-        const int berryType = readIntInput("berry type");
+        int berryType = 0;
+        if (!readIntInput("berry type", berryType))
+            return;
         buyNewBerry(berryType);
     }
     else
-        throw InvalidCommandException(std::to_string(category));
+        cout << "Invalid command: " << category << ". Type exit to quit.\n";
 }
 
 void BoardManager::showFeedBerryMenu()
@@ -363,19 +398,32 @@ void BoardManager::showFeedBerryMenu()
     printBerryInventory();
 
     cout << "Choose berry type and pigeon index: ";
-    const int berryType = readIntInput("berry type");
-    const int pigeonIndex = readIntInput("pigeon index");
+    int berryType = 0;
+    if (!readIntInput("berry type", berryType))
+        return;
+
+    int pigeonIndex = 0;
+    if (!readIntInput("pigeon index", pigeonIndex))
+        return;
+
     feedBerry(berryType, pigeonIndex);
 }
 
 void BoardManager::buyNewPigeon(const int desiredPigeonTier)
 {
     if (!shop.canBuyPigeon(*this, desiredPigeonTier))
-        throw InvalidCommandException(std::to_string(desiredPigeonTier));
+    {
+        cout << "Invalid command: " << desiredPigeonTier << ". Type exit to quit.\n";
+        return;
+    }
 
     const int price = shop.getPigeonPrice(desiredPigeonTier);
     if (coins < price)
-        throw NotEnoughCoinsException(price, coins);
+    {
+        cout << "Not enough coins. Price: " << price
+             << " coins, your coins: " << coins << ".\n";
+        return;
+    }
 
     Pigeon* pigeon = Pigeon::createByTier(desiredPigeonTier);
     if (pigeon == nullptr)
@@ -405,11 +453,18 @@ void BoardManager::buyNewBerry(int desiredBerryType)
 {
     BerryType berryType = Berry::typeFromInt(desiredBerryType);
     if (!shop.canBuyBerry(berryType))
-        throw InvalidCommandException(std::to_string(desiredBerryType));
+    {
+        cout << "Invalid command: " << desiredBerryType << ". Type exit to quit.\n";
+        return;
+    }
 
     const int price = shop.getBerryPrice(berryType);
     if (coins < price)
-        throw NotEnoughCoinsException(price, coins);
+    {
+        cout << "Not enough coins. Price: " << price
+             << " coins, your coins: " << coins << ".\n";
+        return;
+    }
 
     coins -= price;
     berryInventory[static_cast<int>(berryType)]++;
@@ -423,7 +478,10 @@ void BoardManager::feedBerry(const int desiredBerryType, const int pigeonIndex)
 {
     BerryType berryType = Berry::typeFromInt(desiredBerryType);
     if (!Berry::isValidType(berryType))
-        throw InvalidCommandException(std::to_string(desiredBerryType));
+    {
+        cout << "Invalid command: " << desiredBerryType << ". Type exit to quit.\n";
+        return;
+    }
 
     if (getBerryInventoryCount(berryType) <= 0)
     {
@@ -432,10 +490,16 @@ void BoardManager::feedBerry(const int desiredBerryType, const int pigeonIndex)
     }
 
     if (!isValidPigeonIndex(pigeonIndex))
-        throw InvalidCommandException(std::to_string(pigeonIndex));
+    {
+        cout << "Invalid command: " << pigeonIndex << ". Type exit to quit.\n";
+        return;
+    }
 
     if (hasAnyActiveBerryEffect())
-        throw BerryAlreadyInUseException();
+    {
+        cout << "A berry effect is already active. Wait until it ends before feeding another berry.\n";
+        return;
+    }
 
     Pigeon* pigeon = activePigeons[pigeonIndex];
     if (berryType == BerryType::Purple && dynamic_cast<const Pigeostrich*>(pigeon) != nullptr)
