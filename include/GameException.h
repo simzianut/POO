@@ -24,7 +24,7 @@ public:
     NotEnoughCoinsException(int price, int coins);
 };
 
-class BerryAlreadyInUseException : public GameException {    [[nodiscard]] const char* what() const noexcept override;
+class BerryAlreadyInUseException : public GameException {
 public:
     BerryAlreadyInUseException();
 };
