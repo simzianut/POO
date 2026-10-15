@@ -6,7 +6,7 @@
 class AssetManager;
 
 /// Visual wrapper around a Pigeon*.
-/// Renders a tier-coloured sprite that wanders idly inside the play area.
+/// Renders a tier-illustrated pigeon that wanders idly inside the play area.
 /// While being dragged the owner suspends calls to update().
 class EntitySprite {
 public:
@@ -39,10 +39,12 @@ private:
 
     Pigeon*       m_pigeon;
     sf::Sprite    m_sprite;
+    sf::CircleShape m_tierBadge;
     sf::Text      m_tierLabel;
     sf::FloatRect m_playArea;
     sf::Vector2f  m_wanderTarget{};
     float         m_wanderTimer = 0.f;
     float         m_popTimer    = 0.f;
+    float         m_baseScale   = 1.f;
     bool          m_popping     = false;
 };

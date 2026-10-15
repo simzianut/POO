@@ -40,7 +40,6 @@ private:
                     const std::string& label, HudAction action,
                     AssetManager& assets);
 
-    AssetManager*          m_assets;
     sf::RectangleShape     m_topBar;
     sf::RectangleShape     m_bottomBar;
     sf::Text               m_coinText;

@@ -20,7 +20,7 @@ static const sf::Color COIN_RING   {218, 165,  32 };
 // ---------------------------------------------------------------------------
 // Constructor
 // ---------------------------------------------------------------------------
-HudBar::HudBar(AssetManager& assets) : m_assets(&assets)
+HudBar::HudBar(AssetManager& assets)
 {
     // ── Top bar ─────────────────────────────────────────────────────────────
     m_topBar.setSize({WIN_W, HUD_H});

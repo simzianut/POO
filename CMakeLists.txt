@@ -16,7 +16,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # You aren't supposed to be using this, but convenience...
-file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "src/*")
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS RELATIVE ${CMAKE_SOURCE_DIR} "src/*")
 file(GLOB_RECURSE HEADERS RELATIVE ${CMAKE_SOURCE_DIR} "include/*")
 file(GLOB_RECURSE TESTS RELATIVE ${CMAKE_SOURCE_DIR} "test/*.cpp")
 include_directories(include)
@@ -167,6 +167,14 @@ add_executable(${MAIN_EXECUTABLE_NAME} main.cpp ${SOURCES}
         include/EncyclopediaOverlay.h src/EncyclopediaOverlay.cpp
         include/GameWindow.h          src/GameWindow.cpp
 )
+
+# Match SFML's STL annotation settings on current MSVC runners.
+if(MSVC)
+    target_compile_definitions(${MAIN_EXECUTABLE_NAME} PRIVATE
+        _DISABLE_STRING_ANNOTATION
+        _DISABLE_VECTOR_ANNOTATION
+    )
+endif()
 
 # NOTE: Add all defined targets (e.g. executables, libraries, etc. )
 # NOTE: RUN_SANITIZERS is optional, if it's not present it will default to true

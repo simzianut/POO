@@ -18,7 +18,7 @@ public:
     /// Falls back to common Windows / Linux system fonts.
     sf::Font& getFont(const std::string& key);
 
-    /// Returns a tier-coloured circle texture for the given pigeon tier (1-16).
+    /// Returns a distinct illustrated texture for the given pigeon tier (1-16).
     sf::Texture& getPigeonTexture(int tier);
 
     /// Returns the small brown circle used for visual poop FX.

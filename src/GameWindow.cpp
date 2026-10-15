@@ -267,11 +267,10 @@ void GameWindow::onMouseMoved(sf::Vector2i pxPos)
 }
 
 // ---------------------------------------------------------------------------
-void GameWindow::onMouseReleased(sf::Vector2i pxPos)
+void GameWindow::onMouseReleased(sf::Vector2i)
 {
     if (m_draggedIdx < 0) return;
 
-    sf::Vector2f pos       = m_window.mapPixelToCoords(pxPos);
     const int droppedIdx   = m_draggedIdx;
     m_draggedIdx           = -1;
 

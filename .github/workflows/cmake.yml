@@ -49,6 +49,9 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Install Linux dependencies
+        uses: ./.github/actions/install-packages
+
       - name: Run cppcheck
         uses: ./.github/actions/cppcheck
 
@@ -63,6 +66,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Install Linux dependencies
+        uses: ./.github/actions/install-packages
 
       - name: Run clang-tidy
         uses: ./.github/actions/clang-tidy
@@ -137,13 +143,6 @@ jobs:
             # cmake_generator:
             # This env runs address sanitizers
             runs_asan: false
-
-          - os: macos-14
-            c: gcc-13
-            cxx: g++-13
-            name: "macOS 14 GCC 13"
-            # cmake_flags:
-            # cmake_generator: Ninja
 
           - os: windows-2022
             c: cl

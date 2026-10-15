@@ -30,12 +30,21 @@ EntitySprite::EntitySprite(Pigeon* pigeon, AssetManager& assets,
     // Sprite
     sf::Texture& tex = assets.getPigeonTexture(pigeon->getTier());
     m_sprite.setTexture(tex);
-    m_sprite.setOrigin(ENTITY_RADIUS, ENTITY_RADIUS); // 80×80 tex → centre at 40,40
+    m_sprite.setOrigin(ENTITY_RADIUS, ENTITY_RADIUS);
+    const int tier = std::clamp(pigeon->getTier(), 1, 16);
+    m_baseScale = 0.90f + static_cast<float>(tier - 1) * 0.01f;
+    m_sprite.setScale(m_baseScale, m_baseScale);
 
-    // Tier label (small number drawn in the centre of the sprite)
+    m_tierBadge.setRadius(9.f);
+    m_tierBadge.setOrigin(9.f, 9.f);
+    m_tierBadge.setFillColor(sf::Color(35, 42, 56, 225));
+    m_tierBadge.setOutlineColor(sf::Color(245, 220, 164));
+    m_tierBadge.setOutlineThickness(1.f);
+
+    // Show the tier in a compact badge rather than across the pigeon artwork.
     m_tierLabel.setFont(assets.getFont("main"));
     m_tierLabel.setString(std::to_string(pigeon->getTier()));
-    m_tierLabel.setCharacterSize(16);
+    m_tierLabel.setCharacterSize(11);
     m_tierLabel.setFillColor(sf::Color::White);
     m_tierLabel.setStyle(sf::Text::Bold);
     m_tierLabel.setOutlineColor(sf::Color::Black);
@@ -86,11 +95,12 @@ void EntitySprite::updatePopAnimation(float dt)
                   ? 1.f + t * 2.f * 0.5f          // 1 → 1.5
                   : 1.5f - (t - 0.5f) * 2.f * 0.5f; // 1.5 → 1
 
-    m_sprite.setScale(scale, scale);
+    const float animatedScale = m_baseScale * scale;
+    m_sprite.setScale(animatedScale, animatedScale);
 
     if (t >= 1.f) {
         m_popping = false;
-        m_sprite.setScale(1.f, 1.f);
+        m_sprite.setScale(m_baseScale, m_baseScale);
     }
 }
 
@@ -100,6 +110,7 @@ void EntitySprite::updatePopAnimation(float dt)
 void EntitySprite::draw(sf::RenderWindow& window) const
 {
     window.draw(m_sprite);
+    window.draw(m_tierBadge);
     window.draw(m_tierLabel);
 }
 
@@ -111,7 +122,8 @@ bool EntitySprite::contains(sf::Vector2f point) const
     sf::Vector2f pos = m_sprite.getPosition();
     float dx = point.x - pos.x;
     float dy = point.y - pos.y;
-    return (dx * dx + dy * dy) <= ENTITY_RADIUS * ENTITY_RADIUS;
+    const float radius = ENTITY_RADIUS * m_baseScale;
+    return (dx * dx + dy * dy) <= radius * radius;
 }
 
 sf::FloatRect EntitySprite::getBounds() const
@@ -128,14 +140,15 @@ Pigeon*      EntitySprite::getPigeon()   const { return m_pigeon; }
 void EntitySprite::setPosition(sf::Vector2f pos)
 {
     m_sprite.setPosition(pos);
-    m_tierLabel.setPosition(pos);
+    m_tierBadge.setPosition(pos.x + 26.f * m_baseScale, pos.y + 26.f * m_baseScale);
+    m_tierLabel.setPosition(pos.x + 26.f * m_baseScale, pos.y + 26.f * m_baseScale);
 }
 
 void EntitySprite::triggerPopAnimation()
 {
     m_popping  = true;
     m_popTimer = 0.f;
-    m_sprite.setScale(1.f, 1.f);
+    m_sprite.setScale(m_baseScale, m_baseScale);
 }
 
 // ---------------------------------------------------------------------------
@@ -152,10 +165,11 @@ void EntitySprite::pickNewWanderTarget()
 void EntitySprite::clampToPlayArea()
 {
     sf::Vector2f pos  = m_sprite.getPosition();
-    float minX = m_playArea.left  + ENTITY_RADIUS;
-    float maxX = m_playArea.left  + m_playArea.width  - ENTITY_RADIUS;
-    float minY = m_playArea.top   + ENTITY_RADIUS;
-    float maxY = m_playArea.top   + m_playArea.height - ENTITY_RADIUS;
+    const float radius = ENTITY_RADIUS * m_baseScale;
+    float minX = m_playArea.left  + radius;
+    float maxX = m_playArea.left  + m_playArea.width  - radius;
+    float minY = m_playArea.top   + radius;
+    float maxY = m_playArea.top   + m_playArea.height - radius;
 
     pos.x = std::clamp(pos.x, minX, maxX);
     pos.y = std::clamp(pos.y, minY, maxY);

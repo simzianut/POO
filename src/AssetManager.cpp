@@ -1,4 +1,5 @@
 #include "AssetManager.h"
+#include "PigeonArtwork.h"
 
 #include <algorithm>
 #include <array>
@@ -170,10 +171,17 @@ sf::Texture& AssetManager::getPigeonTexture(int tier)
         }
     }
 
-    int idx = std::clamp(tier - 1, 0, 15);
-    sf::Color fill    = TIER_COLORS[static_cast<std::size_t>(idx)];
-    sf::Color outline = (tier == 16) ? sf::Color(255, 215, 0)
-                                     : sf::Color(255, 255, 255, 160);
+    const int idx = std::clamp(tier - 1, 0, 15);
+    sf::Image artwork = createPigeonArtwork(idx + 1);
+    if (artwork.getSize().x > 0 && m_textures[key].loadFromImage(artwork)) {
+        m_textures[key].setSmooth(true);
+        return m_textures[key];
+    }
+
+    // Keep the old tier-coloured marker as a fallback if GPU art rendering fails.
+    const sf::Color fill = TIER_COLORS[static_cast<std::size_t>(idx)];
+    const sf::Color outline = (tier == 16) ? sf::Color(255, 215, 0)
+                                           : sf::Color(255, 255, 255, 160);
     return makeCircleTexture(key, fill, outline);
 }
 
