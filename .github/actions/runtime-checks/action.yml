@@ -49,8 +49,8 @@ runs:
         sudo apt-get install --no-install-recommends -y gdb
         gdb --batch --quiet \
           -ex 'set pagination off' \
-          -ex 'set environment MSAN_OPTIONS=handle_segv=0' \
-          -ex 'handle SIGSEGV stop print nopass' \
+          -ex 'set environment MSAN_OPTIONS=handle_segv=0:fast_unwind_on_fatal=1' \
+          -ex 'break __msan_warning_with_origin_noreturn' \
           -ex 'run' \
           -ex 'bt 40' \
           --args ./${{ env.ZIP_NAME }}/"${EXECUTABLE_NAME}" --smoke-test
@@ -64,7 +64,7 @@ runs:
       #   ASAN_OPTIONS: detect_leaks=1
       run: |
         if [[ "${{ matrix.runs_msan }}" == "true" ]]; then
-          MSAN_OPTIONS=fast_unwind_on_fatal=0:print_stacktrace=1 ./${{ env.ZIP_NAME }}/"${EXECUTABLE_NAME}" --smoke-test
+          MSAN_OPTIONS=fast_unwind_on_fatal=1:print_stacktrace=1 ./${{ env.ZIP_NAME }}/"${EXECUTABLE_NAME}" --smoke-test
         else
           ./${{ env.ZIP_NAME }}/"${EXECUTABLE_NAME}" --smoke-test
         fi

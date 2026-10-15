@@ -1,20 +1,14 @@
 #include <ctime>
-#include <cstdio>
 #include <cstring>
 #include "GameWindow.h"
 #include "BoardManager.h"
 
 int main(int argc, char* argv[])
 {
-    std::fputs("smoke: main entry\n", stderr);
     if (argc == 2 && std::strcmp(argv[1], "--smoke-test") == 0) {
-        std::fputs("smoke: before board\n", stderr);
         BoardManager& board = BoardManager::getInstance();
-        std::fputs("smoke: after board\n", stderr);
         board.spawnBabyPigeon();
-        std::fputs("smoke: after spawn\n", stderr);
         board.update();
-        std::fputs("smoke: after update\n", stderr);
         return board.getTotalPigeonsAlive() == 1 ? 0 : 1;
     }
 

@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <cerrno>
 #include <climits>
-#include <cstdio>
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -139,11 +138,8 @@ void BoardManager::addPigeon(Pigeon* pigeon)
 {
     if (pigeon == nullptr)
         return;
-    std::fputs("board: before push\n", stderr);
     activePigeons.push_back(pigeon);
-    std::fputs("board: before update\n", stderr);
     update();
-    std::fputs("board: after update\n", stderr);
 }
 
 void BoardManager::spawnBabyPigeon(const int count)
@@ -326,20 +322,17 @@ void BoardManager::printBerryInventory() const
 
 void BoardManager::update()
 {
-    std::fputs("update: begin\n", stderr);
     for (size_t i = 0; i < activePigeons.size(); ++i)
     {
         Pigeon* pigeon = activePigeons[i];
         if (pigeon == nullptr)
             continue;
 
-        std::fputs("update: before encyclopedia\n", stderr);
         encyclopedia.updateEncyclopedia(
             pigeon->getName(),
             pigeon->getPoopPerSecond(),
             pigeon->getDescription()
         );
-        std::fputs("update: before berry effects\n", stderr);
 
         if (pigeon->hasBerryEffect() &&
             pigeon->getActiveBerryType() == BerryType::Purple &&
@@ -349,9 +342,7 @@ void BoardManager::update()
             continue;
         }
 
-        std::fputs("update: before poop\n", stderr);
         vector<Poop*> poops = pigeon->dropPoopsIfReady();
-        std::fputs("update: after poop\n", stderr);
         for (const Poop* poop : poops)
         {
             if (poop == nullptr)
@@ -368,7 +359,6 @@ void BoardManager::update()
             pigeon->clearBerryEffect();
         }
     }
-    std::fputs("update: end\n", stderr);
 }
 
 void BoardManager::showEncyclopedia() const
