@@ -1,18 +1,18 @@
 #include <ctime>
-#include <cstring>
+#include <string_view>
 #include "GameWindow.h"
 #include "BoardManager.h"
 
 int main(int argc, char* argv[])
 {
-    if (argc == 2 && std::strcmp(argv[1], "--smoke-test") == 0) {
+    srand(static_cast<unsigned>(time(nullptr)));
+    if (argc == 2 && std::string_view(argv[1]) == "--smoke-test") {
         BoardManager& board = BoardManager::getInstance();
         board.spawnBabyPigeon();
         board.update();
         return board.getTotalPigeonsAlive() == 1 ? 0 : 1;
     }
 
-    srand(static_cast<unsigned>(time(nullptr)));
     GameWindow window;
     window.run();
     return 0;
