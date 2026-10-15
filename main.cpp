@@ -6,7 +6,6 @@
 
 int main(int argc, char* argv[])
 {
-    srand(static_cast<unsigned>(time(nullptr)));
     if (argc == 2 && std::string_view(argv[1]) == "--smoke-test") {
         std::fputs("smoke: before board\n", stderr);
         BoardManager& board = BoardManager::getInstance();
@@ -18,6 +17,7 @@ int main(int argc, char* argv[])
         return board.getTotalPigeonsAlive() == 1 ? 0 : 1;
     }
 
+    srand(static_cast<unsigned>(time(nullptr)));
     GameWindow window;
     window.run();
     return 0;
