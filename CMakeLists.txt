@@ -119,7 +119,19 @@ include(FetchContent)
          URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
  )
 #
-FetchContent_MakeAvailable(googletest)
+ FetchContent_MakeAvailable(googletest)
+
+# ── SFML 2.6.1 (static – no DLLs needed on Windows) ────────────────────────
+set(BUILD_SHARED_LIBS  OFF CACHE BOOL "" FORCE)   # <-- key fix: static build
+set(SFML_BUILD_AUDIO   OFF CACHE BOOL "" FORCE)
+set(SFML_BUILD_NETWORK OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(
+    SFML
+    GIT_REPOSITORY https://github.com/SFML/SFML.git
+    GIT_TAG        2.6.1
+    GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(SFML)
 
 ###############################################################################
 
@@ -135,15 +147,26 @@ add_executable(${MAIN_EXECUTABLE_NAME} main.cpp ${SOURCES}
         src/Poop.cpp
         include/BoardManager.h
         src/BoardManager.cpp
-        include/Crate.h # NEW: crate opening feature
-        src/Crate.cpp # NEW: crate opening feature
-        include/Shop.h # NEW: shop skeleton
-        src/Shop.cpp # NEW: shop skeleton
-        include/Berry.h # NEW: berry skeleton
-        src/Berry.cpp # NEW: berry skeleton
-        include/Encyclopedia.h # NEW: encyclopedia skeleton
+        include/Crate.h
+        src/Crate.cpp
+        include/Shop.h
+        src/Shop.cpp
+        include/Berry.h
+        src/Berry.cpp
+        include/Encyclopedia.h
         src/Encyclopedia.cpp
-        src/GameException.cpp) # NEW: encyclopedia skeleton
+        src/GameException.cpp
+        # ── SFML GUI layer ────────────────────────────────────────────────────
+        include/AssetManager.h        src/AssetManager.cpp
+        include/FloatingText.h        src/FloatingText.cpp
+        include/EntitySprite.h        src/EntitySprite.cpp
+        include/CrateSprite.h         src/CrateSprite.cpp
+        include/BerrySprite.h         src/BerrySprite.cpp
+        include/HudBar.h              src/HudBar.cpp
+        include/ShopOverlay.h         src/ShopOverlay.cpp
+        include/EncyclopediaOverlay.h src/EncyclopediaOverlay.cpp
+        include/GameWindow.h          src/GameWindow.cpp
+)
 
 # NOTE: Add all defined targets (e.g. executables, libraries, etc. )
 # NOTE: RUN_SANITIZERS is optional, if it's not present it will default to true
@@ -156,10 +179,9 @@ set_compiler_flags(RUN_SANITIZERS TRUE TARGET_NAMES ${MAIN_EXECUTABLE_NAME})
 
 # use SYSTEM so cppcheck and clang-tidy do not report warnings from these directories
 target_include_directories(${MAIN_EXECUTABLE_NAME} SYSTEM PRIVATE generated/include)
-# target_include_directories(${MAIN_EXECUTABLE_NAME} SYSTEM PRIVATE ext/<SomeHppLib>/include)
-# target_include_directories(${MAIN_EXECUTABLE_NAME} SYSTEM PRIVATE ${<SomeLib>_SOURCE_DIR}/include)
-# target_link_directories(${MAIN_EXECUTABLE_NAME} PRIVATE ${<SomeLib>_BINARY_DIR}/lib)
-# target_link_libraries(${MAIN_EXECUTABLE_NAME} <SomeLib>)
+
+# ── Link SFML ────────────────────────────────────────────────────────────────
+target_link_libraries(${MAIN_EXECUTABLE_NAME} PRIVATE sfml-graphics sfml-window sfml-system)
 
 ###############################################################################
 
@@ -188,5 +210,9 @@ endif()
 #include(GoogleTest)
 #gtest_discover_tests(test_oop)
 copy_files(FILES tastatura.txt COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
+# Copy assets directory next to the binary (textures, fonts, etc.)
+if(EXISTS "${CMAKE_SOURCE_DIR}/assets")
+    copy_files(DIRECTORY assets COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
+endif()
 # copy_files(FILES tastatura.txt config.json DIRECTORY images sounds COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
 # copy_files(DIRECTORY images sounds COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})

@@ -116,7 +116,6 @@ int Shop::getPigeonPrice(const int pigeonTier) const
     return offer->currentPrice;
 }
 
-// cppcheck-suppress unusedFunction
 int Shop::getPigeonTimesBought(const int pigeonTier) const
 {
     const PigeonOffer* offer = findPigeonOffer(pigeonTier);
@@ -137,7 +136,6 @@ bool Shop::recordPigeonPurchase(const int pigeonTier)
     return true;
 }
 
-// cppcheck-suppress unusedFunction
 const vector<BerryOffer>& Shop::getBerryOffers() const
 {
     return berryOffers;

@@ -78,6 +78,12 @@ int BoardManager::getBerryInventoryCount(BerryType berryType) const
     return berryInventory[index];
 }
 
+int BoardManager::getBerryCount(BerryType berryType) const
+{
+    return getBerryInventoryCount(berryType);
+}
+
+
 bool BoardManager::hasDiscoveredLargestPigeon() const
 {
     return any_of(activePigeons.begin(), activePigeons.end(), [](const Pigeon* pigeon) {
@@ -121,9 +127,11 @@ void BoardManager::sortPigeonsByTier()
     });
 }
 
-void BoardManager::openCrate()
+Pigeon* BoardManager::openCrate()
 {
-    addPigeon(Crate::open(getBiggestPigeonTier()));
+    Pigeon* pigeon = Crate::open(getBiggestPigeonTier());
+    addPigeon(pigeon);
+    return pigeon;
 }
 
 void BoardManager::addPigeon(Pigeon* pigeon)
@@ -134,14 +142,12 @@ void BoardManager::addPigeon(Pigeon* pigeon)
     update();
 }
 
-// cppcheck-suppress unusedFunction
 void BoardManager::spawnBabyPigeon(const int count)
 {
     for (int i = 1; i <= count; i++)
         addPigeon(new BabyPigeon());
 }
 
-// cppcheck-suppress unusedFunction
 void BoardManager::spawnMutantPigeon()
 {
     addPigeon(new MutantPigeon());
@@ -251,7 +257,6 @@ int BoardManager::getTotalPigeonsAlive() const
     return static_cast<int>(activePigeons.size());
 }
 
-// cppcheck-suppress unusedFunction
 int BoardManager::getBiggestPigeonLevel() const
 {
     int biggestLevel = 0;
@@ -270,7 +275,6 @@ int BoardManager::getBiggestPigeonTier() const
     return biggestTier;
 }
 
-// cppcheck-suppress unusedFunction
 int BoardManager::getCoins() const
 {
     return coins;
@@ -514,4 +518,40 @@ void BoardManager::feedBerry(const int desiredBerryType, const int pigeonIndex)
     cout << "Fed " << Berry::getNameByType(berryType)
          << " to " << pigeon->getName() << ".\n";
     cout << "Effect duration: " << berryEffectDurationSeconds << " seconds.\n";
+}
+
+// ============================================================================
+// GUI read-only accessors
+// ============================================================================
+
+int BoardManager::getPigeonIndex(const Pigeon* p) const
+{
+    for (int i = 0; i < static_cast<int>(activePigeons.size()); ++i)
+        if (activePigeons[static_cast<std::size_t>(i)] == p) return i;
+    return -1;
+}
+
+const std::vector<Pigeon*>& BoardManager::getActivePigeons() const
+{
+    return activePigeons;
+}
+
+std::vector<PigeonOffer> BoardManager::getAvailablePigeonOffers() const
+{
+    return shop.getAvailablePigeonOffers(*this);
+}
+
+const std::vector<BerryOffer>& BoardManager::getBerryOffers() const
+{
+    return shop.getBerryOffers();
+}
+
+int BoardManager::getPigeonPrice(int pigeonTier) const
+{
+    return shop.getPigeonPrice(pigeonTier);
+}
+
+const Encyclopedia& BoardManager::getEncyclopedia() const
+{
+    return encyclopedia;
 }

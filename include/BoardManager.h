@@ -40,7 +40,8 @@ public:
     BoardManager(const BoardManager&) = delete;
     BoardManager &operator=(BoardManager) = delete;
 
-    void openCrate();
+    /// Opens a crate, adds its pigeon to the board, and returns that pigeon.
+    Pigeon* openCrate();
     void addPigeon(Pigeon* pigeon);
     void spawnBabyPigeon(int count=1);
     void spawnMutantPigeon();
@@ -51,6 +52,22 @@ public:
     [[nodiscard]] int getBiggestPigeonTier() const;
     [[nodiscard]] int getCoins() const;
     [[nodiscard]] bool hasAnyActiveBerryEffect() const;
+    /// Returns how many berries of the given type are in inventory.
+    [[nodiscard]] int getBerryCount(BerryType berryType) const;
+
+    // ── GUI read-only accessors ─────────────────────────────────────────────
+    /// Returns the index of p in activePigeons, or -1 if not found.
+    [[nodiscard]] int getPigeonIndex(const Pigeon* p) const;
+    /// Direct read access to the active pigeon list.
+    [[nodiscard]] const std::vector<Pigeon*>& getActivePigeons() const;
+    /// Delegates to Shop::getAvailablePigeonOffers.
+    [[nodiscard]] std::vector<PigeonOffer> getAvailablePigeonOffers() const;
+    /// Delegates to Shop::getBerryOffers.
+    [[nodiscard]] const std::vector<BerryOffer>& getBerryOffers() const;
+    /// Delegates to Shop::getPigeonPrice.
+    [[nodiscard]] int getPigeonPrice(int pigeonTier) const;
+    /// Read access to the Encyclopedia for the GUI Encyclopedia overlay.
+    [[nodiscard]] const Encyclopedia& getEncyclopedia() const;
     void printBoard();
     void printBerryInventory() const;
 

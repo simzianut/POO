@@ -75,7 +75,6 @@ Poop* Pigeon::dropPoop() const
     return Poop::createByLevel(level);
 }
 
-// cppcheck-suppress unusedFunction
 Poop* Pigeon::dropPoopIfReady()
 {
     vector<Poop*> poops = dropPoopsIfReady();
@@ -192,12 +191,10 @@ int Pigeon::getLevel() const
 {
     return level;
 }
-// cppcheck-suppress unusedFunction
 float Pigeon::getWeakPoopChance() const
 {
     return weak_poop_chance;
 }
-// cppcheck-suppress unusedFunction
 float Pigeon::getStrongPoopChance() const
 {
     return strong_poop_chance;
