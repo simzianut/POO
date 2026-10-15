@@ -30,6 +30,10 @@ function(set_compiler_flags)
             target_compile_options(${TARGET_NAME} PRIVATE /W4 /permissive- /wd4244 /wd4267 /wd4996 /external:anglebrackets /external:W0 /utf-8 /MP)
         else()
             target_compile_options(${TARGET_NAME} PRIVATE -Wall -Wextra -pedantic)
+            if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" AND USE_MSAN)
+                # libc++ 18 marks SFML's char_traits<uint32_t> use deprecated.
+                target_compile_options(${TARGET_NAME} PRIVATE -Wno-error=deprecated-declarations)
+            endif()
         endif()
 
         ###############################################################################

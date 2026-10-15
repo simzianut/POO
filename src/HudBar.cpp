@@ -73,7 +73,7 @@ HudBar::HudBar(AssetManager& assets)
 // Helpers
 // ---------------------------------------------------------------------------
 void HudBar::initButton(Button& btn, sf::FloatRect rect,
-                        const std::string& lbl, HudAction action,
+                        const std::string& label, HudAction action,
                         AssetManager& assets)
 {
     btn.action      = action;
@@ -87,7 +87,7 @@ void HudBar::initButton(Button& btn, sf::FloatRect rect,
     btn.shape.setOutlineThickness(2.f);
 
     btn.label.setFont(assets.getFont("main"));
-    btn.label.setString(lbl);
+    btn.label.setString(label);
     btn.label.setCharacterSize(18);
     btn.label.setFillColor(sf::Color::White);
     btn.label.setStyle(sf::Text::Bold);
