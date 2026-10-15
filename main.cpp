@@ -1,4 +1,5 @@
 #include <ctime>
+#include <cstdio>
 #include <string_view>
 #include "GameWindow.h"
 #include "BoardManager.h"
@@ -7,9 +8,13 @@ int main(int argc, char* argv[])
 {
     srand(static_cast<unsigned>(time(nullptr)));
     if (argc == 2 && std::string_view(argv[1]) == "--smoke-test") {
+        std::fputs("smoke: before board\n", stderr);
         BoardManager& board = BoardManager::getInstance();
+        std::fputs("smoke: after board\n", stderr);
         board.spawnBabyPigeon();
+        std::fputs("smoke: after spawn\n", stderr);
         board.update();
+        std::fputs("smoke: after update\n", stderr);
         return board.getTotalPigeonsAlive() == 1 ? 0 : 1;
     }
 
