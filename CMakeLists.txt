@@ -125,6 +125,10 @@ include(FetchContent)
 set(BUILD_SHARED_LIBS  OFF CACHE BOOL "" FORCE)   # <-- key fix: static build
 set(SFML_BUILD_AUDIO   OFF CACHE BOOL "" FORCE)
 set(SFML_BUILD_NETWORK OFF CACHE BOOL "" FORCE)
+if(USE_MSAN AND CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND UNIX)
+    # SFML must use the same instrumented libc++ as the application in MSan builds.
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+endif()
 FetchContent_Declare(
     SFML
     GIT_REPOSITORY https://github.com/SFML/SFML.git
