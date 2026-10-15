@@ -1,12 +1,13 @@
 #include <ctime>
 #include <cstdio>
-#include <string_view>
+#include <cstring>
 #include "GameWindow.h"
 #include "BoardManager.h"
 
 int main(int argc, char* argv[])
 {
-    if (argc == 2 && std::string_view(argv[1]) == "--smoke-test") {
+    std::fputs("smoke: main entry\n", stderr);
+    if (argc == 2 && std::strcmp(argv[1], "--smoke-test") == 0) {
         std::fputs("smoke: before board\n", stderr);
         BoardManager& board = BoardManager::getInstance();
         std::fputs("smoke: after board\n", stderr);
