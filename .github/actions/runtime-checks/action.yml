@@ -41,6 +41,20 @@ runs:
         path: tools
         key: tools-clang-${{ matrix.clang_ver }}-stdlib-msan
 
+    - name: Capture MSan stack trace
+      shell: bash
+      if: runner.os == 'Linux' && matrix.runs_msan == true
+      continue-on-error: true
+      run: |
+        sudo apt-get install --no-install-recommends -y gdb
+        gdb --batch --quiet \
+          -ex 'set pagination off' \
+          -ex 'set environment MSAN_OPTIONS=handle_segv=0' \
+          -ex 'handle SIGSEGV stop print nopass' \
+          -ex 'run' \
+          -ex 'bt 40' \
+          --args ./${{ env.ZIP_NAME }}/"${EXECUTABLE_NAME}" --smoke-test
+
     - name: Sanitizers
       shell: bash
       # run one sanitizer for each env to avoid building extra binaries on one env
