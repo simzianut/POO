@@ -1,0 +1,2 @@
+# SFML 2.6.1 global X11 strings trigger a libc++ false positive during locale initialization.
+mainfile:*/SFML/System/String.cpp

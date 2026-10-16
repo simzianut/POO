@@ -138,8 +138,11 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(SFML)
 
 if(USE_MSAN AND CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND UNIX)
-    # SFML 2.6.1's global X11 strings trigger a libc++ false positive during locale initialization.
-    target_compile_options(sfml-system PRIVATE -fno-sanitize=memory)
+    # Instrument SFML System along with the app so MSan can track values across the library boundary.
+    # SFML 2.6.1's global X11 strings trigger a libc++ false positive in its String.cpp locale path.
+    target_compile_options(sfml-system PRIVATE
+        "$<${debug_mode}:-fsanitize=memory,undefined;-fsanitize-recover=memory,undefined;-fsanitize-memory-track-origins>"
+        "-fsanitize-ignorelist=${CMAKE_SOURCE_DIR}/cmake/msan-ignorelist.txt")
 endif()
 
 ###############################################################################
