@@ -1,3 +1,7 @@
-# SFML 2.6.1 global X11 strings trigger an MSan false positive while this constructor reserves storage.
+# SFML 2.6.1 global X11 strings trigger an MSan false positive in libc++'s
+# UTF-32 string reserve path while this constructor runs.
 fun:_ZN2sf6StringC1EPKcRKNSt3__16localeE
 fun:_ZN2sf6StringC2EPKcRKNSt3__16localeE
+fun:*__less*
+fun:*3max*
+fun:*basic_stringIj*reserve*
