@@ -280,6 +280,11 @@ int BoardManager::getCoins() const
     return coins;
 }
 
+bool BoardManager::canBuyBerry(const BerryType berryType) const
+{
+    return shop.canBuyBerry(berryType, getBiggestPigeonLevel());
+}
+
 bool BoardManager::hasAnyActiveBerryEffect() const
 {
     return any_of(activePigeons.begin(), activePigeons.end(), [](const Pigeon* pigeon) {
@@ -386,7 +391,7 @@ void BoardManager::showShop()
     }
     else if (category == 2)
     {
-        shop.showBerryCategory();
+        shop.showBerryCategory(getBiggestPigeonLevel());
         int berryType = 0;
         if (!readIntInput("berry type", berryType))
             return;
@@ -456,9 +461,16 @@ void BoardManager::buyNewPigeon(const int desiredPigeonTier)
 void BoardManager::buyNewBerry(int desiredBerryType)
 {
     BerryType berryType = Berry::typeFromInt(desiredBerryType);
-    if (!shop.canBuyBerry(berryType))
+    if (!Berry::isValidType(berryType))
     {
         cout << "Invalid command: " << desiredBerryType << ". Type exit to quit.\n";
+        return;
+    }
+
+    if (!canBuyBerry(berryType))
+    {
+        cout << Berry::getNameByType(berryType) << " is locked. Reach pigeon level "
+             << Shop::BerryUnlockLevel << " to unlock berries.\n";
         return;
     }
 
@@ -470,12 +482,19 @@ void BoardManager::buyNewBerry(int desiredBerryType)
         return;
     }
 
+    if (!shop.recordBerryPurchase(berryType))
+    {
+        cout << "Could not update the shop after purchase.\n";
+        return;
+    }
+
     coins -= price;
     berryInventory[static_cast<int>(berryType)]++;
 
     cout << "Purchased " << Berry::getNameByType(berryType)
          << " for " << price << " coins.\n";
     cout << "Owned: " << getBerryInventoryCount(berryType) << "\n";
+    cout << "Next price: " << shop.getBerryPrice(berryType) << " coins.\n";
 }
 
 void BoardManager::feedBerry(const int desiredBerryType, const int pigeonIndex)

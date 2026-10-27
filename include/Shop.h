@@ -28,13 +28,16 @@ private:
     [[nodiscard]] const PigeonOffer* findPigeonOffer(int pigeonTier) const;
     [[nodiscard]] PigeonOffer* findPigeonOffer(int pigeonTier);
     [[nodiscard]] const BerryOffer* findBerryOffer(BerryType berryType) const;
+    [[nodiscard]] BerryOffer* findBerryOffer(BerryType berryType);
 
 public:
+    static constexpr int BerryUnlockLevel = 6;
+
     Shop();
 
     static void showCategories() ;
     void showPigeonCategory(const BoardManager& board) const;
-    void showBerryCategory() const;
+    void showBerryCategory(int biggestPigeonLevel) const;
 
     [[nodiscard]] std::vector<PigeonOffer> getAvailablePigeonOffers(const BoardManager& board) const;
     [[nodiscard]] bool canBuyPigeon(const BoardManager& board, int pigeonTier) const;
@@ -43,8 +46,9 @@ public:
     bool recordPigeonPurchase(int pigeonTier);
 
     [[nodiscard]] const std::vector<BerryOffer>& getBerryOffers() const;
-    [[nodiscard]] bool canBuyBerry(BerryType berryType) const;
+    [[nodiscard]] bool canBuyBerry(BerryType berryType, int biggestPigeonLevel) const;
     [[nodiscard]] int getBerryPrice(BerryType berryType) const;
+    bool recordBerryPurchase(BerryType berryType);
 };
 
 #endif

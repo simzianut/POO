@@ -132,6 +132,10 @@ void GameWindow::processEvents()
         case sf::Event::MouseMoved:
             onMouseMoved({ event.mouseMove.x, event.mouseMove.y });
             break;
+        case sf::Event::MouseWheelScrolled:
+            onMouseWheel({event.mouseWheelScroll.x, event.mouseWheelScroll.y},
+                         event.mouseWheelScroll.delta);
+            break;
         case sf::Event::MouseButtonReleased:
             if (event.mouseButton.button == sf::Mouse::Left)
                 onMouseReleased({ event.mouseButton.x, event.mouseButton.y });
@@ -158,7 +162,7 @@ void GameWindow::onMousePressed(sf::Vector2i pxPos)
             syncEntitiesWithBoard();
             syncBerriesWithBoard();
         } else {
-            m_encOverlay.handleClick(pos);
+            m_encOverlay.handleClick(pos, board.getEncyclopedia());
         }
         return;
     }
@@ -260,7 +264,17 @@ void GameWindow::onMousePressed(sf::Vector2i pxPos)
 void GameWindow::onMouseMoved(sf::Vector2i pxPos)
 {
     sf::Vector2f pos = m_window.mapPixelToCoords(pxPos);
-    m_hud.update(pos, BoardManager::getInstance().getCoins());
+    BoardManager& board = BoardManager::getInstance();
+    m_hud.update(pos, board.getCoins());
+
+    if (m_shopOverlay.isOpen()) {
+        m_shopOverlay.handleMouseMoved(pos, board);
+        return;
+    }
+    if (m_encOverlay.isOpen()) {
+        m_encOverlay.handleMouseMoved(pos, board.getEncyclopedia());
+        return;
+    }
 
     if (m_draggedIdx >= 0 && m_draggedIdx < static_cast<int>(m_entities.size()))
         m_entities[static_cast<std::size_t>(m_draggedIdx)].setPosition(pos - m_dragOffset);
@@ -269,15 +283,18 @@ void GameWindow::onMouseMoved(sf::Vector2i pxPos)
 // ---------------------------------------------------------------------------
 void GameWindow::onMouseReleased(sf::Vector2i)
 {
+    if (m_shopOverlay.isOpen()) {
+        m_shopOverlay.handleMouseReleased();
+        return;
+    }
+    if (m_encOverlay.isOpen()) {
+        m_encOverlay.handleMouseReleased();
+        return;
+    }
     if (m_draggedIdx < 0) return;
 
     const int droppedIdx   = m_draggedIdx;
     m_draggedIdx           = -1;
-
-    if (m_shopOverlay.isOpen() || m_encOverlay.isOpen()) {
-        snapToField(droppedIdx);
-        return;
-    }
 
     // Merge detection
     sf::FloatRect droppedBounds = m_entities[static_cast<std::size_t>(droppedIdx)].getBounds();
@@ -289,6 +306,16 @@ void GameWindow::onMouseReleased(sf::Vector2i)
         }
     }
     snapToField(droppedIdx);
+}
+
+void GameWindow::onMouseWheel(const sf::Vector2i pxPos, const float delta)
+{
+    const sf::Vector2f pos = m_window.mapPixelToCoords(pxPos);
+    const BoardManager& board = BoardManager::getInstance();
+    if (m_shopOverlay.isOpen())
+        m_shopOverlay.handleMouseWheel(pos, delta, board);
+    else if (m_encOverlay.isOpen())
+        m_encOverlay.handleMouseWheel(pos, delta, board.getEncyclopedia());
 }
 
 // ============================================================================

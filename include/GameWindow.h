@@ -47,6 +47,7 @@ private:
     void onMousePressed(sf::Vector2i pxPos);
     void onMouseMoved(sf::Vector2i pxPos);
     void onMouseReleased(sf::Vector2i pxPos);
+    void onMouseWheel(sf::Vector2i pxPos, float delta);
 
     // ── Logic layer ──────────────────────────────────────────────────────────
     void update(float dt);

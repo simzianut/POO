@@ -51,6 +51,7 @@ public:
     [[nodiscard]] int getBiggestPigeonLevel() const;
     [[nodiscard]] int getBiggestPigeonTier() const;
     [[nodiscard]] int getCoins() const;
+    [[nodiscard]] bool canBuyBerry(BerryType berryType) const;
     [[nodiscard]] bool hasAnyActiveBerryEffect() const;
     /// Returns how many berries of the given type are in inventory.
     [[nodiscard]] int getBerryCount(BerryType berryType) const;

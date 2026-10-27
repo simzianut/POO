@@ -175,6 +175,7 @@ add_executable(${MAIN_EXECUTABLE_NAME} main.cpp ${SOURCES}
         include/CrateSprite.h         src/CrateSprite.cpp
         include/BerrySprite.h         src/BerrySprite.cpp
         include/HudBar.h              src/HudBar.cpp
+        include/OverlayScrollBar.h
         include/ShopOverlay.h         src/ShopOverlay.cpp
         include/EncyclopediaOverlay.h src/EncyclopediaOverlay.cpp
         include/GameWindow.h          src/GameWindow.cpp

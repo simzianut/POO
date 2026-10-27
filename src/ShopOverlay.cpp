@@ -2,6 +2,7 @@
 #include "AssetManager.h"
 #include "BoardManager.h"
 
+#include <algorithm>
 #include <array>
 #include <string>
 
@@ -34,6 +35,10 @@ ShopOverlay::ShopOverlay(AssetManager& assets) : m_assets(&assets)
     m_panel.setFillColor(PANEL_BG);
     m_panel.setOutlineColor(PANEL_LINE);
     m_panel.setOutlineThickness(2.f);
+
+    m_contentViewport = {PX + 12.f, PY + 58.f, PW - 40.f, PH - 72.f};
+    m_scrollBar.configure({PX + PW - 22.f, PY + 58.f, 8.f, PH - 72.f},
+                          0.f, m_contentViewport.height);
 
     // Title
     m_title.setFont(assets.getFont("main"));
@@ -73,20 +78,27 @@ ShopOverlay::ShopOverlay(AssetManager& assets) : m_assets(&assets)
 // ---------------------------------------------------------------------------
 // Open / close
 // ---------------------------------------------------------------------------
-void ShopOverlay::open()  { m_open = true;  m_dirty = true; }
-void ShopOverlay::close() { m_open = false; }
+void ShopOverlay::open()  { m_open = true; m_dirty = true; m_scrollBar.reset(); }
+void ShopOverlay::close() { m_open = false; m_scrollBar.handleRelease(); }
 bool ShopOverlay::isOpen() const { return m_open; }
+
+bool ShopOverlay::needsRebuild(const BoardManager& board) const
+{
+    return m_dirty || m_cachedCoins != board.getCoins() ||
+           m_cachedBiggestLevel != board.getBiggestPigeonLevel() ||
+           m_cachedBiggestTier != board.getBiggestPigeonTier();
+}
 
 // ---------------------------------------------------------------------------
 // Row building (called lazily before draw/click)
 // ---------------------------------------------------------------------------
-void ShopOverlay::rebuildRows(const BoardManager& board) const
+void ShopOverlay::rebuildRows(const BoardManager& board)
 {
     m_rows.clear();
 
     float rowY  = PY + 62.f;
     const float ROW_H = 54.f;
-    const float ROW_W = PW - 24.f;
+    const float ROW_W = m_contentViewport.width - 8.f;
     int rowIdx  = 0;
 
     auto makeText = [&](const std::string& str, unsigned sz, sf::Color col) {
@@ -112,8 +124,6 @@ void ShopOverlay::rebuildRows(const BoardManager& board) const
 
     auto pigeonOffers = board.getAvailablePigeonOffers();
     for (const auto& offer : pigeonOffers) {
-        if (rowY > PY + PH - ROW_H) break;
-
         ShopRow row;
         row.isBerry    = false;
         row.pigeonTier = offer.tier;
@@ -156,58 +166,70 @@ void ShopOverlay::rebuildRows(const BoardManager& board) const
     }
 
     // ── Berry section ────────────────────────────────────────────────────────
-    if (rowY + 32.f < PY + PH) {
-        m_sectionBerries.setPosition(PX + 18.f, rowY);
-        rowY += 26.f;
+    m_sectionBerries.setPosition(PX + 18.f, rowY);
+    rowY += 26.f;
 
-        static const sf::Color BERRY_COLORS[3] = {
-            {220, 55, 55},   // Red
-            {255, 220, 0},   // Yellow
-            {155, 0, 200},   // Purple
-        };
+    static const sf::Color BERRY_COLORS[3] = {
+        {220, 55, 55},   // Red
+        {255, 220, 0},   // Yellow
+        {155, 0, 200},   // Purple
+    };
 
-        auto berryOffers = board.getBerryOffers();
-        for (const auto& offer : berryOffers) {
-            if (rowY > PY + PH - ROW_H) break;
+    auto berryOffers = board.getBerryOffers();
+    for (const auto& offer : berryOffers) {
 
-            ShopRow row;
-            row.isBerry   = true;
-            row.berryType = static_cast<int>(offer.type);
-            row.canAfford = (board.getCoins() >= offer.price);
+        ShopRow row;
+        row.isBerry   = true;
+        row.berryType = static_cast<int>(offer.type);
+        row.isLocked  = !board.canBuyBerry(offer.type);
+        row.canAfford = !row.isLocked && board.getCoins() >= offer.price;
 
-            row.bg.setSize({ROW_W, ROW_H});
-            row.bg.setPosition(PX + 12.f, rowY);
-            row.bg.setFillColor((rowIdx % 2 == 0) ? ROW_EVEN : ROW_ODD);
+        row.bg.setSize({ROW_W, ROW_H});
+        row.bg.setPosition(PX + 12.f, rowY);
+        row.bg.setFillColor((rowIdx % 2 == 0) ? ROW_EVEN : ROW_ODD);
 
-            int bIdx = static_cast<int>(offer.type) - 1;
-            if (bIdx < 0 || bIdx > 2) bIdx = 0;
-            row.icon.setRadius(20.f);
-            row.icon.setOrigin(20.f, 20.f);
-            row.icon.setFillColor(BERRY_COLORS[bIdx]);
-            row.icon.setPosition(PX + 32.f, rowY + ROW_H * 0.5f);
+        int bIdx = static_cast<int>(offer.type) - 1;
+        if (bIdx < 0 || bIdx > 2) bIdx = 0;
+        row.icon.setRadius(20.f);
+        row.icon.setOrigin(20.f, 20.f);
+        row.icon.setFillColor(BERRY_COLORS[bIdx]);
+        row.icon.setPosition(PX + 32.f, rowY + ROW_H * 0.5f);
 
-            row.nameText = makeText(offer.name, 17, sf::Color(215, 228, 255));
-            row.nameText.setPosition(PX + 62.f, rowY + 8.f);
+        row.nameText = makeText(offer.name, 17, sf::Color(215, 228, 255));
+        row.nameText.setPosition(PX + 62.f, rowY + 8.f);
 
-            row.priceText = makeText(std::to_string(offer.price) + " coins",
-                                      15, row.canAfford ? GOLD_TEXT : RED_TEXT);
-            row.priceText.setPosition(PX + 62.f, rowY + 29.f);
+        const std::string priceLabel = row.isLocked
+            ? std::to_string(offer.price) + " coins | Reach level " +
+                  std::to_string(Shop::BerryUnlockLevel)
+            : std::to_string(offer.price) + " coins";
+        row.priceText = makeText(priceLabel, 15,
+                                 row.isLocked ? sf::Color(190, 145, 145)
+                                              : row.canAfford ? GOLD_TEXT : RED_TEXT);
+        row.priceText.setPosition(PX + 62.f, rowY + 29.f);
 
-            row.buyBtn.setSize({108.f, 36.f});
-            row.buyBtn.setPosition(PX + PW - 138.f, rowY + (ROW_H - 36.f) * 0.5f);
-            row.buyBtn.setFillColor(row.canAfford ? BUY_OK : BUY_NO);
+        row.buyBtn.setSize({108.f, 36.f});
+        row.buyBtn.setPosition(PX + PW - 138.f, rowY + (ROW_H - 36.f) * 0.5f);
+        row.buyBtn.setFillColor(row.canAfford ? BUY_OK : BUY_NO);
 
-            row.buyLabel = makeText(row.canAfford ? "BUY" : "N/A", 16, sf::Color::White);
-            sf::FloatRect bl = row.buyLabel.getLocalBounds();
-            row.buyLabel.setOrigin(bl.left + bl.width * 0.5f, bl.top + bl.height * 0.5f);
-            row.buyLabel.setPosition(PX + PW - 84.f, rowY + ROW_H * 0.5f);
+        const std::string buttonLabel = row.isLocked
+            ? "LOCKED\nReach level " + std::to_string(Shop::BerryUnlockLevel)
+            : row.canAfford ? "BUY" : "N/A";
+        row.buyLabel = makeText(buttonLabel, row.isLocked ? 10 : 16, sf::Color::White);
+        sf::FloatRect bl = row.buyLabel.getLocalBounds();
+        row.buyLabel.setOrigin(bl.left + bl.width * 0.5f, bl.top + bl.height * 0.5f);
+        row.buyLabel.setPosition(PX + PW - 84.f, rowY + ROW_H * 0.5f);
 
-            m_rows.push_back(std::move(row));
-            rowY  += ROW_H + 3.f;
-            rowIdx++;
-        }
+        m_rows.push_back(std::move(row));
+        rowY  += ROW_H + 3.f;
+        rowIdx++;
     }
 
+    const float contentHeight = rowY - m_contentViewport.top + 8.f;
+    m_scrollBar.configure({PX + PW - 22.f, PY + 58.f, 8.f, PH - 72.f},
+                          contentHeight, m_contentViewport.height);
+    m_cachedCoins = board.getCoins();
+    m_cachedBiggestLevel = board.getBiggestPigeonLevel();
+    m_cachedBiggestTier = board.getBiggestPigeonTier();
     m_dirty = false;
 }
 
@@ -222,14 +244,21 @@ bool ShopOverlay::handleClick(sf::Vector2f pos, BoardManager& board)
 
     rebuildRows(board); // rebuild with fresh affordability
 
-    for (const auto& row : m_rows) {
-        if (row.buyBtn.getGlobalBounds().contains(pos) && row.canAfford) {
-            if (row.isBerry)
-                board.buyNewBerry(row.berryType);
-            else
-                board.buyNewPigeon(row.pigeonTier);
-            m_dirty = true;
-            return true;
+    if (m_scrollBar.handlePress(pos))
+        return true;
+
+    if (m_contentViewport.contains(pos)) {
+        const sf::Vector2f contentPos(pos.x, pos.y + m_scrollBar.offset());
+
+        for (const auto& row : m_rows) {
+            if (row.buyBtn.getGlobalBounds().contains(contentPos) && row.canAfford) {
+                if (row.isBerry)
+                    board.buyNewBerry(row.berryType);
+                else
+                    board.buyNewPigeon(row.pigeonTier);
+                m_dirty = true;
+                return true;
+            }
         }
     }
 
@@ -238,27 +267,52 @@ bool ShopOverlay::handleClick(sf::Vector2f pos, BoardManager& board)
     return true;
 }
 
+bool ShopOverlay::handleMouseWheel(const sf::Vector2f pos, const float delta,
+                                  const BoardManager& board)
+{
+    if (!m_open) return false;
+    if (needsRebuild(board)) rebuildRows(board);
+    return m_scrollBar.handleWheel(pos, delta, m_contentViewport);
+}
+
+bool ShopOverlay::handleMouseMoved(const sf::Vector2f pos, const BoardManager& board)
+{
+    if (!m_open) return false;
+    if (needsRebuild(board)) rebuildRows(board);
+    return m_scrollBar.handleMove(pos);
+}
+
+void ShopOverlay::handleMouseReleased()
+{
+    m_scrollBar.handleRelease();
+}
+
 // ---------------------------------------------------------------------------
 // Draw
 // ---------------------------------------------------------------------------
-void ShopOverlay::draw(sf::RenderWindow& window, const BoardManager& board) const
+void ShopOverlay::draw(sf::RenderWindow& window, const BoardManager& board)
 {
     if (!m_open) return;
-    if (m_dirty) rebuildRows(board);
+    if (needsRebuild(board)) rebuildRows(board);
 
     window.draw(m_overlay);
     window.draw(m_panel);
     window.draw(m_title);
     window.draw(m_closeBtn);
     window.draw(m_closeLabel);
+    const sf::View previousView = window.getView();
+    sf::View contentView(sf::FloatRect(m_contentViewport.left,
+                                       m_contentViewport.top + m_scrollBar.offset(),
+                                       m_contentViewport.width,
+                                       m_contentViewport.height));
+    contentView.setViewport({m_contentViewport.left / 1280.f,
+                             m_contentViewport.top / 720.f,
+                             m_contentViewport.width / 1280.f,
+                             m_contentViewport.height / 720.f});
+    window.setView(contentView);
     window.draw(m_sectionPigeons);
-
-    bool berryHeaderDrawn = false;
+    window.draw(m_sectionBerries);
     for (const auto& row : m_rows) {
-        if (row.isBerry && !berryHeaderDrawn) {
-            window.draw(m_sectionBerries);
-            berryHeaderDrawn = true;
-        }
         window.draw(row.bg);
         window.draw(row.icon);
         window.draw(row.nameText);
@@ -266,4 +320,6 @@ void ShopOverlay::draw(sf::RenderWindow& window, const BoardManager& board) cons
         window.draw(row.buyBtn);
         window.draw(row.buyLabel);
     }
+    window.setView(previousView);
+    m_scrollBar.draw(window);
 }

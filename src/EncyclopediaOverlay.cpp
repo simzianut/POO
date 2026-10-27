@@ -30,6 +30,10 @@ EncyclopediaOverlay::EncyclopediaOverlay(AssetManager& assets) : m_assets(&asset
     m_panel.setOutlineColor(PANEL_LINE);
     m_panel.setOutlineThickness(2.f);
 
+    m_contentViewport = {PX + 12.f, PY + 56.f, PW - 40.f, PH - 72.f};
+    m_scrollBar.configure({PX + PW - 22.f, PY + 56.f, 8.f, PH - 72.f},
+                          0.f, m_contentViewport.height);
+
     m_title.setFont(assets.getFont("main"));
     m_title.setString("PIGEON ENCYCLOPEDIA");
     m_title.setCharacterSize(28);
@@ -55,21 +59,21 @@ EncyclopediaOverlay::EncyclopediaOverlay(AssetManager& assets) : m_assets(&asset
 // ---------------------------------------------------------------------------
 // Open / close
 // ---------------------------------------------------------------------------
-void EncyclopediaOverlay::open()  { m_open = true;  m_dirty = true; }
-void EncyclopediaOverlay::close() { m_open = false; }
+void EncyclopediaOverlay::open()  { m_open = true; m_dirty = true; m_scrollBar.reset(); }
+void EncyclopediaOverlay::close() { m_open = false; m_scrollBar.handleRelease(); }
 bool EncyclopediaOverlay::isOpen() const { return m_open; }
 
 // ---------------------------------------------------------------------------
 // Row building
 // ---------------------------------------------------------------------------
-void EncyclopediaOverlay::rebuildRows(const Encyclopedia& enc) const
+void EncyclopediaOverlay::rebuildRows(const Encyclopedia& enc)
 {
     m_rows.clear();
     const auto& pigeons = enc.getPigeons();
 
     float rowY          = PY + 60.f;
     const float ROW_H   = 52.f;
-    const float ROW_W   = PW - 24.f;
+    const float ROW_W   = m_contentViewport.width - 8.f;
     int rowIdx          = 0;
 
     auto makeText = [&](const std::string& str, unsigned sz, sf::Color col) {
@@ -82,8 +86,6 @@ void EncyclopediaOverlay::rebuildRows(const Encyclopedia& enc) const
     };
 
     for (const auto& info : pigeons) {
-        if (rowY > PY + PH - ROW_H) break;
-
         EncRow row;
         row.bg.setSize({ROW_W, ROW_H});
         row.bg.setPosition(PX + 12.f, rowY);
@@ -111,27 +113,52 @@ void EncyclopediaOverlay::rebuildRows(const Encyclopedia& enc) const
         rowIdx++;
     }
 
+    const float contentHeight = rowY - m_contentViewport.top + 8.f;
+    m_scrollBar.configure({PX + PW - 22.f, PY + 56.f, 8.f, PH - 72.f},
+                          contentHeight, m_contentViewport.height);
     m_dirty = false;
 }
 
 // ---------------------------------------------------------------------------
 // Input
 // ---------------------------------------------------------------------------
-bool EncyclopediaOverlay::handleClick(sf::Vector2f pos)
+bool EncyclopediaOverlay::handleClick(sf::Vector2f pos, const Encyclopedia& enc)
 {
     if (!m_open) return false;
     if (m_closeBtn.getGlobalBounds().contains(pos)) { close(); return true; }
+    if (m_dirty || m_rows.size() != enc.getPigeons().size()) rebuildRows(enc);
+    if (m_scrollBar.handlePress(pos)) return true;
     if (!m_panel.getGlobalBounds().contains(pos)) close();
     return true;
+}
+
+bool EncyclopediaOverlay::handleMouseWheel(const sf::Vector2f pos, const float delta,
+                                           const Encyclopedia& enc)
+{
+    if (!m_open) return false;
+    if (m_dirty || m_rows.size() != enc.getPigeons().size()) rebuildRows(enc);
+    return m_scrollBar.handleWheel(pos, delta, m_contentViewport);
+}
+
+bool EncyclopediaOverlay::handleMouseMoved(const sf::Vector2f pos, const Encyclopedia& enc)
+{
+    if (!m_open) return false;
+    if (m_dirty || m_rows.size() != enc.getPigeons().size()) rebuildRows(enc);
+    return m_scrollBar.handleMove(pos);
+}
+
+void EncyclopediaOverlay::handleMouseReleased()
+{
+    m_scrollBar.handleRelease();
 }
 
 // ---------------------------------------------------------------------------
 // Draw
 // ---------------------------------------------------------------------------
-void EncyclopediaOverlay::draw(sf::RenderWindow& window, const Encyclopedia& enc) const
+void EncyclopediaOverlay::draw(sf::RenderWindow& window, const Encyclopedia& enc)
 {
     if (!m_open) return;
-    if (m_dirty) rebuildRows(enc);
+    if (m_dirty || m_rows.size() != enc.getPigeons().size()) rebuildRows(enc);
 
     window.draw(m_overlay);
     window.draw(m_panel);
@@ -139,10 +166,22 @@ void EncyclopediaOverlay::draw(sf::RenderWindow& window, const Encyclopedia& enc
     window.draw(m_closeBtn);
     window.draw(m_closeLabel);
 
+    const sf::View previousView = window.getView();
+    sf::View contentView(sf::FloatRect(m_contentViewport.left,
+                                       m_contentViewport.top + m_scrollBar.offset(),
+                                       m_contentViewport.width,
+                                       m_contentViewport.height));
+    contentView.setViewport({m_contentViewport.left / 1280.f,
+                             m_contentViewport.top / 720.f,
+                             m_contentViewport.width / 1280.f,
+                             m_contentViewport.height / 720.f});
+    window.setView(contentView);
     for (const auto& row : m_rows) {
         window.draw(row.bg);
         window.draw(row.nameText);
         window.draw(row.ppsText);
         window.draw(row.descText);
     }
+    window.setView(previousView);
+    m_scrollBar.draw(window);
 }

@@ -3,6 +3,7 @@
 #include <vector>
 #include <SFML/Graphics.hpp>
 #include "Encyclopedia.h"
+#include "OverlayScrollBar.h"
 
 class AssetManager;
 
@@ -16,9 +17,12 @@ public:
     [[nodiscard]] bool isOpen() const;
 
     /// Returns true if the click was consumed.
-    bool handleClick(sf::Vector2f pos);
+    bool handleClick(sf::Vector2f pos, const Encyclopedia& enc);
+    bool handleMouseWheel(sf::Vector2f pos, float delta, const Encyclopedia& enc);
+    bool handleMouseMoved(sf::Vector2f pos, const Encyclopedia& enc);
+    void handleMouseReleased();
 
-    void draw(sf::RenderWindow& window, const Encyclopedia& enc) const;
+    void draw(sf::RenderWindow& window, const Encyclopedia& enc);
 
 private:
     struct EncRow {
@@ -28,7 +32,7 @@ private:
         sf::Text           descText;
     };
 
-    void rebuildRows(const Encyclopedia& enc) const;
+    void rebuildRows(const Encyclopedia& enc);
 
     bool               m_open  = false;
     AssetManager*      m_assets;
@@ -39,6 +43,8 @@ private:
     sf::Text           m_title;
     sf::Text           m_closeLabel;
 
-    mutable std::vector<EncRow> m_rows;
-    mutable bool                m_dirty = true;
+    std::vector<EncRow> m_rows;
+    OverlayScrollBar    m_scrollBar;
+    sf::FloatRect       m_contentViewport;
+    bool                m_dirty = true;
 };

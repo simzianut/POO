@@ -3,6 +3,7 @@
 #include <vector>
 #include <SFML/Graphics.hpp>
 #include "Berry.h"
+#include "OverlayScrollBar.h"
 
 class AssetManager;
 class BoardManager;
@@ -19,8 +20,11 @@ public:
 
     /// Returns true if the click was consumed by this overlay.
     bool handleClick(sf::Vector2f pos, BoardManager& board);
+    bool handleMouseWheel(sf::Vector2f pos, float delta, const BoardManager& board);
+    bool handleMouseMoved(sf::Vector2f pos, const BoardManager& board);
+    void handleMouseReleased();
 
-    void draw(sf::RenderWindow& window, const BoardManager& board) const;
+    void draw(sf::RenderWindow& window, const BoardManager& board);
 
 private:
     struct ShopRow {
@@ -34,9 +38,11 @@ private:
         int                berryType  = 0;
         bool               isBerry    = false;
         bool               canAfford  = false;
+        bool               isLocked   = false;
     };
 
-    void rebuildRows(const BoardManager& board) const;
+    [[nodiscard]] bool needsRebuild(const BoardManager& board) const;
+    void rebuildRows(const BoardManager& board);
 
     bool               m_open  = false;
     AssetManager*      m_assets;
@@ -46,9 +52,14 @@ private:
     sf::RectangleShape m_closeBtn;
     sf::Text           m_title;
     sf::Text           m_closeLabel;
-    mutable sf::Text   m_sectionPigeons;
-    mutable sf::Text   m_sectionBerries;
+    sf::Text           m_sectionPigeons;
+    sf::Text           m_sectionBerries;
 
-    mutable std::vector<ShopRow> m_rows;
-    mutable bool                 m_dirty = true;
+    std::vector<ShopRow> m_rows;
+    OverlayScrollBar     m_scrollBar;
+    sf::FloatRect        m_contentViewport;
+    int                  m_cachedCoins = -1;
+    int                  m_cachedBiggestLevel = -1;
+    int                  m_cachedBiggestTier = -1;
+    bool                 m_dirty = true;
 };

@@ -1,5 +1,7 @@
 #include "Shop.h"
+#include <algorithm>
 #include <iostream>
+#include <limits>
 
 #include "Pigeon.h"
 #include "BoardManager.h"
@@ -20,9 +22,9 @@ Shop::Shop()
     }
 
     berryOffers = {
-        {BerryType::Red, Berry::getNameByType(BerryType::Red), 100},
-        {BerryType::Yellow, Berry::getNameByType(BerryType::Yellow), 100},
-        {BerryType::Purple, Berry::getNameByType(BerryType::Purple), 100}
+        {BerryType::Red, Berry::getNameByType(BerryType::Red), 500},
+        {BerryType::Yellow, Berry::getNameByType(BerryType::Yellow), 500},
+        {BerryType::Purple, Berry::getNameByType(BerryType::Purple), 500}
     };
 }
 
@@ -45,6 +47,14 @@ PigeonOffer* Shop::findPigeonOffer(const int pigeonTier)
 const BerryOffer* Shop::findBerryOffer(const BerryType berryType) const
 {
     for (const BerryOffer& offer : berryOffers)
+        if (offer.type == berryType)
+            return &offer;
+    return nullptr;
+}
+
+BerryOffer* Shop::findBerryOffer(const BerryType berryType)
+{
+    for (BerryOffer& offer : berryOffers)
         if (offer.type == berryType)
             return &offer;
     return nullptr;
@@ -77,13 +87,16 @@ void Shop::showPigeonCategory(const BoardManager& board) const
     cout << "Choose a pigeon tier to buy: ";
 }
 
-void Shop::showBerryCategory() const
+void Shop::showBerryCategory(const int biggestPigeonLevel) const
 {
     cout << "\n         BERRY SHOP\n";
     for (const BerryOffer& offer : berryOffers)
     {
         cout << static_cast<int>(offer.type) << " - " << offer.name
-             << " | price: " << offer.price << " coins\n";
+             << " | price: " << offer.price << " coins";
+        if (biggestPigeonLevel < BerryUnlockLevel)
+            cout << " | LOCKED (reach level " << BerryUnlockLevel << ")";
+        cout << "\n";
     }
     cout << "Choose a berry type to buy: ";
 }
@@ -141,9 +154,9 @@ const vector<BerryOffer>& Shop::getBerryOffers() const
     return berryOffers;
 }
 
-bool Shop::canBuyBerry(const BerryType berryType) const
+bool Shop::canBuyBerry(const BerryType berryType, const int biggestPigeonLevel) const
 {
-    return findBerryOffer(berryType) != nullptr;
+    return biggestPigeonLevel >= BerryUnlockLevel && findBerryOffer(berryType) != nullptr;
 }
 
 int Shop::getBerryPrice(const BerryType berryType) const
@@ -153,4 +166,16 @@ int Shop::getBerryPrice(const BerryType berryType) const
         return 0;
 
     return offer->price;
+}
+
+bool Shop::recordBerryPurchase(const BerryType berryType)
+{
+    BerryOffer* offer = findBerryOffer(berryType);
+    if (offer == nullptr)
+        return false;
+
+    const long long nextPrice = static_cast<long long>(offer->price) * 13 / 10;
+    offer->price = static_cast<int>(std::min(
+        nextPrice, static_cast<long long>(std::numeric_limits<int>::max())));
+    return true;
 }
