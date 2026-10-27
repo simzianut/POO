@@ -119,16 +119,18 @@ include(FetchContent)
          URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
  )
 #
- FetchContent_MakeAvailable(googletest)
+
+if(USE_MSAN AND CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND UNIX)
+    # FetchContent dependencies must use the same standard library as the app.
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+endif()
+
+FetchContent_MakeAvailable(googletest)
 
 # ── SFML 2.6.1 (static – no DLLs needed on Windows) ────────────────────────
 set(BUILD_SHARED_LIBS  OFF CACHE BOOL "" FORCE)   # <-- key fix: static build
 set(SFML_BUILD_AUDIO   OFF CACHE BOOL "" FORCE)
 set(SFML_BUILD_NETWORK OFF CACHE BOOL "" FORCE)
-if(USE_MSAN AND CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND UNIX)
-    # SFML must use the same instrumented libc++ as the application in MSan builds.
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-endif()
 FetchContent_Declare(
     SFML
     GIT_REPOSITORY https://github.com/SFML/SFML.git
@@ -218,13 +220,24 @@ include(CTest)
 if(BUILD_TESTING)
     add_executable(oop_tests ${HEADERS} test/game_logic_test.cpp ${SOURCES})
     target_compile_definitions(oop_tests PRIVATE PIGEON_ENABLE_TESTS)
+    # Match SFML's STL annotation settings on current MSVC runners.
+    if(MSVC)
+        target_compile_definitions(oop_tests PRIVATE
+            _DISABLE_STRING_ANNOTATION
+            _DISABLE_VECTOR_ANNOTATION
+        )
+    elseif(MINGW)
+        # Avoid loading a potentially incompatible libstdc++ from the runner PATH.
+        target_link_options(oop_tests PRIVATE -static-libgcc -static-libstdc++)
+    endif()
     target_include_directories(oop_tests SYSTEM PRIVATE generated/include)
     target_link_libraries(oop_tests PRIVATE
             GTest::gtest_main sfml-graphics sfml-window sfml-system)
     set_compiler_flags(RUN_SANITIZERS TRUE TARGET_NAMES oop_tests)
 
     include(GoogleTest)
-    gtest_discover_tests(oop_tests)
+    # Defer execution until CTest so Windows toolchain runtime paths are set up.
+    gtest_discover_tests(oop_tests DISCOVERY_MODE PRE_TEST)
 endif()
 copy_files(FILES tastatura.txt COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
 # Copy assets directory next to the binary (textures, fonts, etc.)
