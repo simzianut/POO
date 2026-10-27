@@ -13,6 +13,9 @@ using namespace std;
 
 class BoardManager {
 private:
+#ifdef PIGEON_ENABLE_TESTS
+    friend struct BoardManagerTestAccess;
+#endif
     vector<Pigeon*> activePigeons;
     array<int, 4> berryInventory;
     Encyclopedia encyclopedia;

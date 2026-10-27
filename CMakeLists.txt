@@ -214,22 +214,18 @@ if(APPLE)
 endif()
 
 ###############################################################################
-#enable_testing()
-#
-#add_executable(
-#        test_oop
-#        ${HEADERS}
-#        ${TESTS}
-#        ${SOURCES}
-#)
-#
-#target_link_libraries(
-#        test_oop
-#        GTest::gtest_main
-#)
-#
-#include(GoogleTest)
-#gtest_discover_tests(test_oop)
+include(CTest)
+if(BUILD_TESTING)
+    add_executable(oop_tests ${HEADERS} ${TESTS} ${SOURCES})
+    target_compile_definitions(oop_tests PRIVATE PIGEON_ENABLE_TESTS)
+    target_include_directories(oop_tests SYSTEM PRIVATE generated/include)
+    target_link_libraries(oop_tests PRIVATE
+            GTest::gtest_main sfml-graphics sfml-window sfml-system)
+    set_compiler_flags(RUN_SANITIZERS TRUE TARGET_NAMES oop_tests)
+
+    include(GoogleTest)
+    gtest_discover_tests(oop_tests)
+endif()
 copy_files(FILES tastatura.txt COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
 # Copy assets directory next to the binary (textures, fonts, etc.)
 if(EXISTS "${CMAKE_SOURCE_DIR}/assets")

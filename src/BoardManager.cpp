@@ -157,25 +157,16 @@ void BoardManager::spawnMutantPigeon()
 void BoardManager::performMerge(const int index1, const int index2)
 {
     if (index1 == index2 || !isValidPigeonIndex(index1) || !isValidPigeonIndex(index2))
-    {
-        cout << "Invalid command: merge indices. Type exit to quit.\n";
-        return;
-    }
+        throw InvalidCommandException("merge indices");
 
     Pigeon* p1 = activePigeons[index1];
     Pigeon* p2 = activePigeons[index2];
 
     if (!(*p1 == *p2))
-    {
-        cout << "Merge failed. Those pigeons cannot be combined.\n";
-        return;
-    }
+        throw GameException("Merge failed. Those pigeons cannot be combined.");
 
     if (p1->hasActiveBerryEffect() && p2->hasActiveBerryEffect())
-    {
-        cout << "Only one active berry effect can exist at a time. Merge blocked.\n";
-        return;
-    }
+        throw GameException("Only one active berry effect can exist at a time. Merge blocked.");
 
     const Pigeon* berryPigeon = nullptr;
     if (p1->hasActiveBerryEffect())
@@ -211,31 +202,24 @@ void BoardManager::performMerge(const int index1, const int index2)
         update();
     }
     else
-        cout << "Merge failed. Those pigeons cannot be combined.\n";
+        throw GameException("Merge failed. Those pigeons cannot be combined.");
 }
 
 void BoardManager::performMerge(const int index)
 {
     if (!isValidPigeonIndex(index))
-    {
-        cout << "Invalid pigeon selection!\n";
-        return;
-    }
+        throw InvalidCommandException("pigeon selection");
 
     Pigeon* pigeon = activePigeons[index];
     if (!pigeon->hasBerryEffect() || pigeon->getActiveBerryType() != BerryType::Purple ||
         !pigeon->isBerryEffectExpired())
-    {
-        cout << "Purple Berry effect is not ready for this pigeon.\n";
-        return;
-    }
+        throw GameException("Purple Berry effect is not ready for this pigeon.");
 
     Pigeon* newPigeon = pigeon->merge(*pigeon);
     if (newPigeon == nullptr)
     {
-        cout << "Purple Berry expired, but " << pigeon->getName() << " cannot evolve further.\n";
         pigeon->clearBerryEffect();
-        return;
+        throw GameException("Purple Berry expired, but this pigeon cannot evolve further.");
     }
 
     cout << "Purple Berry evolved " << pigeon->getName()
@@ -427,25 +411,15 @@ void BoardManager::showFeedBerryMenu()
 void BoardManager::buyNewPigeon(const int desiredPigeonTier)
 {
     if (!shop.canBuyPigeon(*this, desiredPigeonTier))
-    {
-        cout << "Invalid command: " << desiredPigeonTier << ". Type exit to quit.\n";
-        return;
-    }
+        throw InvalidCommandException(std::to_string(desiredPigeonTier));
 
     const int price = shop.getPigeonPrice(desiredPigeonTier);
     if (coins < price)
-    {
-        cout << "Not enough coins. Price: " << price
-             << " coins, your coins: " << coins << ".\n";
-        return;
-    }
+        throw NotEnoughCoinsException(price, coins);
 
     Pigeon* pigeon = Pigeon::createByTier(desiredPigeonTier);
     if (pigeon == nullptr)
-    {
-        cout << "Could not create that pigeon.\n";
-        return;
-    }
+        throw GameException("Could not create that pigeon.");
 
     const string pigeonName = pigeon->getName();
     coins -= price;
@@ -454,8 +428,7 @@ void BoardManager::buyNewPigeon(const int desiredPigeonTier)
     {
         coins += price;
         delete pigeon;
-        cout << "Could not update the shop after purchase.\n";
-        return;
+        throw GameException("Could not update the shop after purchase.");
     }
 
     addPigeon(pigeon);
@@ -468,31 +441,18 @@ void BoardManager::buyNewBerry(int desiredBerryType)
 {
     BerryType berryType = Berry::typeFromInt(desiredBerryType);
     if (!Berry::isValidType(berryType))
-    {
-        cout << "Invalid command: " << desiredBerryType << ". Type exit to quit.\n";
-        return;
-    }
+        throw InvalidCommandException(std::to_string(desiredBerryType));
 
     if (!canBuyBerry(berryType))
-    {
-        cout << Berry::getNameByType(berryType) << " is locked. Reach pigeon level "
-             << Shop::BerryUnlockLevel << " to unlock berries.\n";
-        return;
-    }
+        throw GameException(Berry::getNameByType(berryType) + " is locked. Reach pigeon level " +
+                            std::to_string(Shop::BerryUnlockLevel) + " to unlock berries.");
 
     const int price = shop.getBerryPrice(berryType);
     if (coins < price)
-    {
-        cout << "Not enough coins. Price: " << price
-             << " coins, your coins: " << coins << ".\n";
-        return;
-    }
+        throw NotEnoughCoinsException(price, coins);
 
     if (!shop.recordBerryPurchase(berryType))
-    {
-        cout << "Could not update the shop after purchase.\n";
-        return;
-    }
+        throw GameException("Could not update the shop after purchase.");
 
     coins -= price;
     berryInventory[static_cast<int>(berryType)]++;
@@ -507,35 +467,20 @@ void BoardManager::feedBerry(const int desiredBerryType, const int pigeonIndex)
 {
     BerryType berryType = Berry::typeFromInt(desiredBerryType);
     if (!Berry::isValidType(berryType))
-    {
-        cout << "Invalid command: " << desiredBerryType << ". Type exit to quit.\n";
-        return;
-    }
+        throw InvalidCommandException(std::to_string(desiredBerryType));
 
     if (getBerryInventoryCount(berryType) <= 0)
-    {
-        cout << "You do not own a " << Berry::getNameByType(berryType) << ".\n";
-        return;
-    }
+        throw GameException("You do not own a " + Berry::getNameByType(berryType) + ".");
 
     if (!isValidPigeonIndex(pigeonIndex))
-    {
-        cout << "Invalid command: " << pigeonIndex << ". Type exit to quit.\n";
-        return;
-    }
+        throw InvalidCommandException(std::to_string(pigeonIndex));
 
     if (hasAnyActiveBerryEffect())
-    {
-        cout << "A berry effect is already active. Wait until it ends before feeding another berry.\n";
-        return;
-    }
+        throw BerryAlreadyInUseException();
 
     Pigeon* pigeon = activePigeons[pigeonIndex];
     if (berryType == BerryType::Purple && dynamic_cast<const Pigeostrich*>(pigeon) != nullptr)
-    {
-        cout << "Pigeostrich is already the largest pigeon.\n";
-        return;
-    }
+        throw GameException("Pigeostrich is already the largest pigeon.");
 
     pigeon->applyBerryEffect(berryType, berryEffectDurationSeconds);
     berryInventory[static_cast<int>(berryType)]--;

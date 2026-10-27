@@ -4,7 +4,9 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <exception>
 #include <limits>
+#include <sstream>
 #include <string>
 
 // ---------------------------------------------------------------------------
@@ -13,6 +15,24 @@
 static float randF(float lo, float hi)
 {
     return lo + static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * (hi - lo);
+}
+
+static std::string wrapErrorMessage(const std::string& message, const std::size_t lineLength)
+{
+    std::istringstream words(message);
+    std::string word;
+    std::string result;
+    std::string line;
+    while (words >> word) {
+        if (!line.empty() && line.size() + word.size() + 1 > lineLength) {
+            result += line + '\n';
+            line.clear();
+        }
+        if (!line.empty()) line += ' ';
+        line += word;
+    }
+    if (!line.empty()) result += line;
+    return result;
 }
 
 // ---------------------------------------------------------------------------
@@ -68,6 +88,38 @@ GameWindow::GameWindow()
     m_berryHintText.setFillColor(sf::Color(100, 100, 160));
     m_berryHintText.setPosition(trayX + 4.f, HUD_TOP_H + trayH - 46.f);
 
+    m_errorPanel.setSize({440.f, 122.f});
+    m_errorPanel.setPosition(18.f, HUD_TOP_H + 10.f);
+    m_errorPanel.setFillColor(sf::Color(36, 18, 25, 248));
+    m_errorPanel.setOutlineColor(sf::Color(205, 75, 95));
+    m_errorPanel.setOutlineThickness(2.f);
+
+    m_errorTitle.setFont(m_assets.getFont("main"));
+    m_errorTitle.setString("Action couldn't be completed");
+    m_errorTitle.setCharacterSize(17);
+    m_errorTitle.setFillColor(sf::Color(255, 190, 195));
+    m_errorTitle.setStyle(sf::Text::Bold);
+    m_errorTitle.setPosition(32.f, HUD_TOP_H + 19.f);
+
+    m_errorMessage.setFont(m_assets.getFont("main"));
+    m_errorMessage.setCharacterSize(14);
+    m_errorMessage.setFillColor(sf::Color(245, 235, 235));
+    m_errorMessage.setPosition(32.f, HUD_TOP_H + 51.f);
+
+    m_errorCloseButton.setSize({28.f, 28.f});
+    m_errorCloseButton.setPosition(418.f, HUD_TOP_H + 16.f);
+    m_errorCloseButton.setFillColor(sf::Color(125, 40, 55));
+
+    m_errorCloseLabel.setFont(m_assets.getFont("main"));
+    m_errorCloseLabel.setString("X");
+    m_errorCloseLabel.setCharacterSize(16);
+    m_errorCloseLabel.setFillColor(sf::Color::White);
+    m_errorCloseLabel.setStyle(sf::Text::Bold);
+    const sf::FloatRect errorCloseBounds = m_errorCloseLabel.getLocalBounds();
+    m_errorCloseLabel.setOrigin(errorCloseBounds.left + errorCloseBounds.width * 0.5f,
+                                errorCloseBounds.top + errorCloseBounds.height * 0.5f);
+    m_errorCloseLabel.setPosition(432.f, HUD_TOP_H + 30.f);
+
     // ── Initial state ─────────────────────────────────────────────────────────
     BoardManager& board = BoardManager::getInstance();
     board.spawnBabyPigeon(1);
@@ -113,7 +165,13 @@ void GameWindow::run()
         float dt = m_clock.restart().asSeconds();
         dt = std::min(dt, 0.05f);
         processEvents();
-        update(dt);
+        try {
+            update(dt);
+        } catch (const std::exception& error) {
+            showError(error.what());
+        } catch (...) {
+            showError("An unexpected game error occurred.");
+        }
         render();
     }
 }
@@ -125,6 +183,7 @@ void GameWindow::processEvents()
 {
     sf::Event event;
     while (m_window.pollEvent(event)) {
+        try {
         switch (event.type) {
         case sf::Event::Closed:
             m_window.close();
@@ -150,6 +209,15 @@ void GameWindow::processEvents()
         default:
             break;
         }
+        } catch (const std::exception& error) {
+            m_selectedBerryType = BerryType::None;
+            for (auto& berry : m_berrySprites) berry.setSelected(false);
+            showError(error.what());
+        } catch (...) {
+            m_selectedBerryType = BerryType::None;
+            for (auto& berry : m_berrySprites) berry.setSelected(false);
+            showError("An unexpected game error occurred.");
+        }
     }
 }
 
@@ -157,6 +225,12 @@ void GameWindow::processEvents()
 void GameWindow::onMousePressed(sf::Vector2i pxPos)
 {
     sf::Vector2f pos = m_window.mapPixelToCoords(pxPos);
+
+    if (m_errorVisible) {
+        if (m_errorCloseButton.getGlobalBounds().contains(pos))
+            m_errorVisible = false;
+        return;
+    }
 
     // ── Overlays consume all clicks while open ───────────────────────────────
     if (m_shopOverlay.isOpen() || m_encOverlay.isOpen()) {
@@ -270,6 +344,7 @@ void GameWindow::onMouseMoved(sf::Vector2i pxPos)
     sf::Vector2f pos = m_window.mapPixelToCoords(pxPos);
     BoardManager& board = BoardManager::getInstance();
     m_hud.update(pos, board.getCoins());
+    if (m_errorVisible) return;
 
     if (m_shopOverlay.isOpen()) {
         m_shopOverlay.handleMouseMoved(pos, board);
@@ -287,6 +362,7 @@ void GameWindow::onMouseMoved(sf::Vector2i pxPos)
 // ---------------------------------------------------------------------------
 void GameWindow::onMouseReleased(sf::Vector2i)
 {
+    if (m_errorVisible) return;
     if (m_shopOverlay.isOpen()) {
         m_shopOverlay.handleMouseReleased();
         return;
@@ -314,12 +390,30 @@ void GameWindow::onMouseReleased(sf::Vector2i)
 
 void GameWindow::onMouseWheel(const sf::Vector2i pxPos, const float delta)
 {
+    if (m_errorVisible) return;
     const sf::Vector2f pos = m_window.mapPixelToCoords(pxPos);
     const BoardManager& board = BoardManager::getInstance();
     if (m_shopOverlay.isOpen())
         m_shopOverlay.handleMouseWheel(pos, delta, board);
     else if (m_encOverlay.isOpen())
         m_encOverlay.handleMouseWheel(pos, delta, board.getEncyclopedia());
+}
+
+void GameWindow::showError(const std::string& message)
+{
+    m_errorMessage.setString(wrapErrorMessage(message, 52));
+    m_errorVisible = true;
+}
+
+void GameWindow::drawErrorPopup()
+{
+    if (!m_errorVisible)
+        return;
+    m_window.draw(m_errorPanel);
+    m_window.draw(m_errorTitle);
+    m_window.draw(m_errorMessage);
+    m_window.draw(m_errorCloseButton);
+    m_window.draw(m_errorCloseLabel);
 }
 
 // ============================================================================
@@ -385,7 +479,12 @@ void GameWindow::handleMerge(int idxA, int idxB)
     if (boardIdxA < 0 || boardIdxB < 0) { snapToField(idxA); return; }
 
     const int prevSize = static_cast<int>(board.getActivePigeons().size());
-    board.performMerge(boardIdxA, boardIdxB);
+    try {
+        board.performMerge(boardIdxA, boardIdxB);
+    } catch (...) {
+        snapToField(idxA);
+        throw;
+    }
     const int newSize  = static_cast<int>(board.getActivePigeons().size());
 
     if (newSize < prevSize) {
@@ -637,6 +736,7 @@ void GameWindow::render()
     m_encOverlay.draw(m_window, BoardManager::getInstance().getEncyclopedia());
 
     m_hud.draw(m_window);  // HUD always on top
+    drawErrorPopup();
     m_window.display();
 }
 

@@ -48,6 +48,8 @@ private:
     void onMouseMoved(sf::Vector2i pxPos);
     void onMouseReleased(sf::Vector2i pxPos);
     void onMouseWheel(sf::Vector2i pxPos, float delta);
+    void showError(const std::string& message);
+    void drawErrorPopup();
 
     // ── Logic layer ──────────────────────────────────────────────────────────
     void update(float dt);
@@ -120,6 +122,13 @@ private:
     sf::RectangleShape        m_berryTrayBg;
     sf::Text                  m_berryTrayLabel;
     sf::Text                  m_berryHintText;
+
+    bool                      m_errorVisible = false;
+    sf::RectangleShape        m_errorPanel;
+    sf::RectangleShape        m_errorCloseButton;
+    sf::Text                  m_errorTitle;
+    sf::Text                  m_errorMessage;
+    sf::Text                  m_errorCloseLabel;
 
     // Cosmetic poop FX
     struct PoopFX {
