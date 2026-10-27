@@ -233,7 +233,13 @@ if(BUILD_TESTING)
     target_include_directories(oop_tests SYSTEM PRIVATE generated/include)
     target_link_libraries(oop_tests PRIVATE
             GTest::gtest_main sfml-graphics sfml-window sfml-system)
-    set_compiler_flags(RUN_SANITIZERS TRUE TARGET_NAMES oop_tests)
+    # MSVC's ASan runtime DLL is not available to CTest's discovery process on hosted runners.
+    # The game executable still runs the existing Windows sanitizer smoke check.
+    if(MSVC)
+        set_compiler_flags(RUN_SANITIZERS FALSE TARGET_NAMES oop_tests)
+    else()
+        set_compiler_flags(RUN_SANITIZERS TRUE TARGET_NAMES oop_tests)
+    endif()
 
     include(GoogleTest)
     # Defer execution until CTest so Windows toolchain runtime paths are set up.
