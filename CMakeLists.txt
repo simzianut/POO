@@ -216,7 +216,7 @@ endif()
 ###############################################################################
 include(CTest)
 if(BUILD_TESTING)
-    add_executable(oop_tests ${HEADERS} ${TESTS} ${SOURCES})
+    add_executable(oop_tests ${HEADERS} test/game_logic_test.cpp ${SOURCES})
     target_compile_definitions(oop_tests PRIVATE PIGEON_ENABLE_TESTS)
     target_include_directories(oop_tests SYSTEM PRIVATE generated/include)
     target_link_libraries(oop_tests PRIVATE
