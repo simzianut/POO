@@ -192,7 +192,7 @@ jobs:
       - name: Test
         run: |
           if [[ -f "${BUILD_DIR}/CTestTestfile.cmake" ]]; then
-            ctest --test-dir "${BUILD_DIR}" --output-on-failure
+            ctest --test-dir "${BUILD_DIR}" -C "${BUILD_TYPE}" --output-on-failure
           else
             echo "No CTest tests are registered; skipping this step."
           fi
