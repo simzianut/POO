@@ -17,6 +17,7 @@ private:
     array<int, 4> berryInventory;
     Encyclopedia encyclopedia;
     Shop shop;
+    bool berriesUnlocked;
     int coins;
     int berryEffectDurationSeconds;
     int lastInputCommand;

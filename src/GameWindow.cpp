@@ -30,9 +30,13 @@ GameWindow::GameWindow()
     // Background sprite
     sf::Texture& bgTex = m_assets.getTexture("background");
     m_bgSprite.setTexture(bgTex);
-    float sx = static_cast<float>(WIN_W) / static_cast<float>(bgTex.getSize().x);
-    float sy = static_cast<float>(WIN_H) / static_cast<float>(bgTex.getSize().y);
-    m_bgSprite.setScale(sx, sy);
+    const float sx = static_cast<float>(WIN_W) / static_cast<float>(bgTex.getSize().x);
+    const float sy = static_cast<float>(WIN_H) / static_cast<float>(bgTex.getSize().y);
+    const float scale = std::max(sx, sy);
+    m_bgSprite.setScale(scale, scale);
+    m_bgSprite.setPosition(
+        (static_cast<float>(WIN_W) - bgTex.getSize().x * scale) * 0.5f,
+        (static_cast<float>(WIN_H) - bgTex.getSize().y * scale) * 0.5f);
 
     // ── Berry tray panel ─────────────────────────────────────────────────────
     float trayX = static_cast<float>(WIN_W) - BERRY_TRAY_W;

@@ -1,6 +1,7 @@
 #include "EncyclopediaOverlay.h"
 #include "AssetManager.h"
 
+#include <algorithm>
 #include <cmath>
 #include <string>
 
@@ -91,9 +92,19 @@ void EncyclopediaOverlay::rebuildRows(const Encyclopedia& enc)
         row.bg.setPosition(PX + 12.f, rowY);
         row.bg.setFillColor((rowIdx % 2 == 0) ? ROW_EVEN : ROW_ODD);
 
+        sf::Texture& iconTexture = m_assets->getPigeonTexture(info.tier);
+        row.icon.setTexture(iconTexture);
+        const sf::Vector2u iconSize = iconTexture.getSize();
+        if (iconSize.x > 0 && iconSize.y > 0) {
+            constexpr float ICON_SIZE = 38.f;
+            const float scale = ICON_SIZE / static_cast<float>(std::max(iconSize.x, iconSize.y));
+            row.icon.setScale(scale, scale);
+            row.icon.setPosition(PX + 18.f, rowY + (ROW_H - ICON_SIZE) * 0.5f);
+        }
+
         row.nameText = makeText(info.name, 17, sf::Color(215, 228, 255));
         row.nameText.setStyle(sf::Text::Bold);
-        row.nameText.setPosition(PX + 22.f, rowY + 6.f);
+        row.nameText.setPosition(PX + 68.f, rowY + 6.f);
 
         // Format PPS
         std::string ppsStr;
@@ -103,10 +114,10 @@ void EncyclopediaOverlay::rebuildRows(const Encyclopedia& enc)
         else                       ppsStr = std::to_string(static_cast<int>(pps))              + " PPS";
 
         row.ppsText = makeText(ppsStr, 14, sf::Color(255, 215, 0));
-        row.ppsText.setPosition(PX + 22.f, rowY + 28.f);
+        row.ppsText.setPosition(PX + 68.f, rowY + 28.f);
 
         row.descText = makeText(info.description, 14, sf::Color(155, 165, 190));
-        row.descText.setPosition(PX + 240.f, rowY + 17.f);
+        row.descText.setPosition(PX + 285.f, rowY + 17.f);
 
         m_rows.push_back(std::move(row));
         rowY  += ROW_H + 2.f;
@@ -178,6 +189,7 @@ void EncyclopediaOverlay::draw(sf::RenderWindow& window, const Encyclopedia& enc
     window.setView(contentView);
     for (const auto& row : m_rows) {
         window.draw(row.bg);
+        window.draw(row.icon);
         window.draw(row.nameText);
         window.draw(row.ppsText);
         window.draw(row.descText);

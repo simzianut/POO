@@ -5,8 +5,9 @@
 using namespace std;
 
 
-PigeonInfo::PigeonInfo(string name, const float poopPerSecond, string description) :
+PigeonInfo::PigeonInfo(string name, const int tier, const float poopPerSecond, string description) :
     name(std::move(name)),
+    tier(tier),
     poopPerSecond(poopPerSecond),
     description(std::move(description)) {}
 
@@ -32,12 +33,13 @@ const vector<PigeonInfo>& Encyclopedia::getPigeons() const
     return pigeons;
 }
 
-void Encyclopedia::updateEncyclopedia(const string& name, const float poopPerSecond, const string& description)
+void Encyclopedia::updateEncyclopedia(const string& name, const int tier,
+                                      const float poopPerSecond, const string& description)
 {
     for (const auto &entry : pigeons)
         if (entry.name == name)
             return;
-    pigeons.emplace_back(name, poopPerSecond, description);
+    pigeons.emplace_back(name, tier, poopPerSecond, description);
 }
 
 void Encyclopedia::showPigeonInfo(const string& name) const

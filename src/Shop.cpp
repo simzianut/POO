@@ -87,14 +87,14 @@ void Shop::showPigeonCategory(const BoardManager& board) const
     cout << "Choose a pigeon tier to buy: ";
 }
 
-void Shop::showBerryCategory(const int biggestPigeonLevel) const
+void Shop::showBerryCategory(const bool berriesUnlocked) const
 {
     cout << "\n         BERRY SHOP\n";
     for (const BerryOffer& offer : berryOffers)
     {
         cout << static_cast<int>(offer.type) << " - " << offer.name
              << " | price: " << offer.price << " coins";
-        if (biggestPigeonLevel < BerryUnlockLevel)
+        if (!berriesUnlocked)
             cout << " | LOCKED (reach level " << BerryUnlockLevel << ")";
         cout << "\n";
     }
@@ -154,9 +154,9 @@ const vector<BerryOffer>& Shop::getBerryOffers() const
     return berryOffers;
 }
 
-bool Shop::canBuyBerry(const BerryType berryType, const int biggestPigeonLevel) const
+bool Shop::canBuyBerry(const BerryType berryType) const
 {
-    return biggestPigeonLevel >= BerryUnlockLevel && findBerryOffer(berryType) != nullptr;
+    return findBerryOffer(berryType) != nullptr;
 }
 
 int Shop::getBerryPrice(const BerryType berryType) const

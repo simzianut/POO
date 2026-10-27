@@ -33,7 +33,7 @@ private:
                                    sf::Color fill,
                                    sf::Color outline = sf::Color::Transparent);
 
-    /// Creates a procedural 1280×720 starfield background.
+    /// Creates a procedural 1280×720 fallback background.
     sf::Texture& makeBackgroundTexture();
 
     std::map<std::string, sf::Texture> m_textures;

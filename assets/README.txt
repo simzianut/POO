@@ -2,7 +2,7 @@
 # Missing pigeon PNGs are illustrated at runtime with distinct, transparent art
 # for every tier, from the small Baby Pigeon to the tall Pigeostrich.
 # Expected names:
-#   background.png   - 1280x720 background (sky/cityscape)
+#   background.jpeg  - game window background (cropped to fill 1280x720)
 #   pigeon_t1.png    - Baby Pigeon  (80x80)
 #   pigeon_t2.png    - Normal Pigeon
 #   ...

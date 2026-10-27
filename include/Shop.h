@@ -37,7 +37,7 @@ public:
 
     static void showCategories() ;
     void showPigeonCategory(const BoardManager& board) const;
-    void showBerryCategory(int biggestPigeonLevel) const;
+    void showBerryCategory(bool berriesUnlocked) const;
 
     [[nodiscard]] std::vector<PigeonOffer> getAvailablePigeonOffers(const BoardManager& board) const;
     [[nodiscard]] bool canBuyPigeon(const BoardManager& board, int pigeonTier) const;
@@ -46,7 +46,7 @@ public:
     bool recordPigeonPurchase(int pigeonTier);
 
     [[nodiscard]] const std::vector<BerryOffer>& getBerryOffers() const;
-    [[nodiscard]] bool canBuyBerry(BerryType berryType, int biggestPigeonLevel) const;
+    [[nodiscard]] bool canBuyBerry(BerryType berryType) const;
     [[nodiscard]] int getBerryPrice(BerryType berryType) const;
     bool recordBerryPurchase(BerryType berryType);
 };

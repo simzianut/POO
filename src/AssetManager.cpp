@@ -122,6 +122,15 @@ sf::Texture& AssetManager::getTexture(const std::string& key)
     auto it = m_textures.find(key);
     if (it != m_textures.end()) return it->second;
 
+    if (key == "background") {
+        sf::Texture& background = m_textures[key];
+        if (background.loadFromFile("assets/background.jpeg")) {
+            background.setSmooth(true);
+            return background;
+        }
+        return makeBackgroundTexture();
+    }
+
     // Try loading from file
     std::string path = "assets/" + key + ".png";
     if (std::filesystem::exists(path)) {
@@ -130,9 +139,6 @@ sf::Texture& AssetManager::getTexture(const std::string& key)
             return m_textures[key];
         }
     }
-
-    // Special procedural fallbacks
-    if (key == "background") return makeBackgroundTexture();
 
     return makeCircleTexture(key, sf::Color(120, 120, 120));
 }

@@ -9,10 +9,11 @@ using namespace std;
 struct PigeonInfo
 {
     string name;
+    int    tier;
     float  poopPerSecond;
     string description;
 
-    PigeonInfo(string name, float poopPerSecond, string description);
+    PigeonInfo(string name, int tier, float poopPerSecond, string description);
     PigeonInfo(const PigeonInfo& other);
     PigeonInfo& operator=(const PigeonInfo& other);
     ~PigeonInfo();
@@ -31,7 +32,8 @@ public:
     void showPigeonInfo(const string& name) const;
     void showAll() const;
 
-    void updateEncyclopedia(const string& name, float poopPerSecond, const string& description);
+    void updateEncyclopedia(const string& name, int tier, float poopPerSecond,
+                            const string& description);
 };
 
 #endif

@@ -27,6 +27,7 @@ public:
 private:
     struct EncRow {
         sf::RectangleShape bg;
+        sf::Sprite         icon;
         sf::Text           nameText;
         sf::Text           ppsText;
         sf::Text           descText;

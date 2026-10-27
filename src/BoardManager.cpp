@@ -47,6 +47,7 @@ istream& operator>>(istream& in, BoardManager& board)
 
 BoardManager::BoardManager() :
     berryInventory{},
+    berriesUnlocked(false),
     coins(0),
     berryEffectDurationSeconds(15),
     lastInputCommand(0) {}
@@ -245,6 +246,7 @@ void BoardManager::performMerge(const int index)
 
     encyclopedia.updateEncyclopedia(
         newPigeon->getName(),
+        newPigeon->getTier(),
         newPigeon->getPoopPerSecond(),
         newPigeon->getDescription()
     );
@@ -282,7 +284,7 @@ int BoardManager::getCoins() const
 
 bool BoardManager::canBuyBerry(const BerryType berryType) const
 {
-    return shop.canBuyBerry(berryType, getBiggestPigeonLevel());
+    return berriesUnlocked && shop.canBuyBerry(berryType);
 }
 
 bool BoardManager::hasAnyActiveBerryEffect() const
@@ -327,6 +329,9 @@ void BoardManager::printBerryInventory() const
 
 void BoardManager::update()
 {
+    if (!berriesUnlocked && getBiggestPigeonLevel() >= Shop::BerryUnlockLevel)
+        berriesUnlocked = true;
+
     for (size_t i = 0; i < activePigeons.size(); ++i)
     {
         Pigeon* pigeon = activePigeons[i];
@@ -335,6 +340,7 @@ void BoardManager::update()
 
         encyclopedia.updateEncyclopedia(
             pigeon->getName(),
+            pigeon->getTier(),
             pigeon->getPoopPerSecond(),
             pigeon->getDescription()
         );
@@ -391,7 +397,7 @@ void BoardManager::showShop()
     }
     else if (category == 2)
     {
-        shop.showBerryCategory(getBiggestPigeonLevel());
+        shop.showBerryCategory(berriesUnlocked);
         int berryType = 0;
         if (!readIntInput("berry type", berryType))
             return;
